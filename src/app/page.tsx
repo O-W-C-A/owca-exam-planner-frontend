@@ -1,3 +1,3 @@
 export default function Home() {
-  return <h1>Salut echipa</h1>;
+  return <a href="/login">Login</a>;
 }
