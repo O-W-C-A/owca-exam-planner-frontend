@@ -1,0 +1,40 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    # Step 1: Checkout the code from the PR
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Step 2: Set up Node.js environment
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '22'
+
+    # Step 3: Install dependencies
+    - name: Install dependencies
+      run: npm install
+
+    # Step 4: Run ESLint (code linting)
+    - name: Run ESLint
+      run: npm run lint  # This assumes you have an npm script to lint the code
+
+    # Step 5: Run unit tests
+    - name: Run unit tests
+      run: npm run test  # Replace with your test command, such as jest or mocha
+
+    # Step 6: Run build to ensure there are no build issues
+    - name: Build the project
+      run: npm run build  # This ensures that the app builds successfully
+
+    # Step 7: Run npm audit to check for vulnerabilities
+    #- name: Run npm audit
+    #  run: npm audit --production
