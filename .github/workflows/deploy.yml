@@ -1,0 +1,66 @@
+name: Build and Deploy Frontend to Azure
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow when there are changes to the main branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Use the latest version of Ubuntu to run the job
+    
+    steps:
+    # Step 1: Checkout the code
+    - name: Checkout code
+      uses: actions/checkout@v2  # Checkout the repository code
+    
+    # Step 2: Set up Node.js
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'  # Specify the Node.js version
+
+    # Step 3: Install dependencies
+    - name: Install dependencies
+      run: npm install
+
+    # Step 4: Run linting (if you have ESLint configured)
+    - name: Run ESLint
+      run: npm run lint
+
+    # Step 5: Run unit tests (if you have unit tests set up)
+    - name: Run unit tests
+      run: npm run test
+
+    # Step 6: Run end-to-end tests (if applicable)
+    - name: Run E2E tests
+      run: npm run e2e
+
+    # Step 7: Build the project for production
+    - name: Build the project
+      run: npm run build
+
+    # Step 8: Run npm audit to check for security vulnerabilities in dependencies
+    - name: Run npm audit
+      run: npm audit --production
+
+  deploy:
+    needs: build  # The deploy job depends on the success of the build job
+    runs-on: ubuntu-latest  # Use the latest version of Ubuntu to run the deployment job
+    
+    steps:
+    # Step 1: Checkout the code again (needed for the deploy job)
+    - name: Checkout code
+      uses: actions/checkout@v2
+    
+    # Step 2: Set up Azure CLI
+    - name: Set up Azure CLI
+      uses: azure/setup-azure-cli@v1
+    
+    # Step 3: Azure WebApp Deploy
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: '<your-app-name>'  # Your Azure App Service name
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}  # Azure publish profile stored in GitHub secrets
+        package: ./build  # Specify the directory where the production build is located
