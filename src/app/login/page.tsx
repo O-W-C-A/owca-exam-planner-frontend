@@ -1,7 +1,7 @@
-'use client';
+// 'use client';
 const page = () => {
   return (
-    <div className="h-max ring-4 min-h-screen flex justify-center">
+    <div className="w-screen h-screen flex justify-center">
       <form className="max-w-sm mx-auto flex justify-center flex-col w-full pb-40">
         <div className="mb-5">
           <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
