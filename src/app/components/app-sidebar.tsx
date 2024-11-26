@@ -1,3 +1,4 @@
+'use client';
 import { Calendar, Inbox, Search, Settings } from 'lucide-react';
 
 import {
@@ -15,22 +16,28 @@ import {
 const items = [
   {
     title: 'Calendar',
-    url: '#',
+    url: '/',
     icon: Calendar,
   },
   {
     title: 'Inbox',
-    url: '#',
+    url: 'inbox',
+    icon: Inbox,
+  },
+  {
+    title: 'Prof-inbox',
+    url: 'prof-inbox',
     icon: Inbox,
   },
   {
     title: 'Search',
-    url: '#',
+    url: 'search',
     icon: Search,
   },
+
   {
     title: 'Settings',
-    url: '#',
+    url: 'settings',
     icon: Settings,
   },
 ];
@@ -40,7 +47,7 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel>Exam programming</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
