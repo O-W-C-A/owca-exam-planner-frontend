@@ -11,13 +11,14 @@ jobs:
     steps:
     # Step 1: Checkout the code from the PR
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     # Step 2: Set up Node.js environment
     - name: Set up Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v4
       with:
         node-version: '22'
+        cache: 'npm'
 
     # Step 3: Install npm/ci dependencies
     - name: Install dependencies
