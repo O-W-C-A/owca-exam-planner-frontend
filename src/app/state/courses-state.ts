@@ -22,9 +22,7 @@ const useDataStore = create<DataState>((set) => ({
     set({ isLoading: true, error: null });
 
     try {
-      const response = await fetch(
-        'https://e044-86-123-70-166.ngrok-free.app/GetCoursersForExamByUserID?userId=1',
-      );
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/GetCoursersForExamByUserID?userId=1`);
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
