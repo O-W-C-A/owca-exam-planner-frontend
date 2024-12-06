@@ -1,14 +1,14 @@
 import { create } from 'zustand';
 
-interface Post {
-  title: string;
-  numeProfesor: string;
-  prenumeProfesor: string;
-  status: string;
-}
-
+export type Faculty = {
+  facultyID: number;
+  shortName: string;
+  longName: string;
+  description: string | null;
+  creationDate: string;
+};
 interface DataState {
-  data: Post[];
+  data: Faculty[];
   isLoading: boolean;
   error: string | null;
   fetchData: () => Promise<void>;
@@ -22,14 +22,15 @@ const useDataStore = create<DataState>((set) => ({
     set({ isLoading: true, error: null });
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/GetCoursersForExamByUserID?userId=1`);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/faculties`,
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      console.log(response);
-
-      const result: Post[] = await response.json();
+      const result = await response.json();
+      console.log(result);
 
       set({ data: result, isLoading: false });
     } catch (error: unknown) {

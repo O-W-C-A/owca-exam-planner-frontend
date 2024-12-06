@@ -1,28 +1,25 @@
 'use client';
-import { useEffect } from 'react';
-import useDataStore from './state/courses-state';
+import { Button } from '../components/ui/button';
+import useDataStore from './store/courses-store';
 
 export default function Home() {
   const { data, isLoading, error, fetchData } = useDataStore();
-
-  useEffect(() => {
-    fetchData(); // Obținem datele când componenta se montează
-  }, [fetchData]);
 
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
 
   return (
     <div>
-      <h1>Posts:</h1>
+      <h1>Facultati:</h1>
       <ul>
-        {data.map((post) => (
-          <li key={post.numeProfesor}>
-            {post.title}
-            <p>{post.status}</p>
+        {data.map((faculty) => (
+          <li key={faculty.facultyID}>
+            {faculty.longName} {faculty.shortName}{' '}
           </li>
         ))}
       </ul>
+
+      <Button onClick={fetchData}>Fetch courses</Button>
     </div>
   );
 
