@@ -1,5 +1,5 @@
 'use client';
-import { Calendar, Inbox, Search, Settings } from 'lucide-react';
+import { Calendar, Inbox, Search, Settings, Plus } from 'lucide-react';
 
 import {
   Sidebar,
@@ -34,7 +34,11 @@ const items = [
     url: 'search',
     icon: Search,
   },
-
+  {
+    title: 'Create Specialization', 
+    url: 'Specialization',
+    icon: Plus, 
+  },
   {
     title: 'Settings',
     url: 'settings',
