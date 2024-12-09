@@ -6,43 +6,115 @@ on:
       - main
 
 jobs:
-  build:
+  # Job 1: Install and Lint
+  install_and_lint:
     runs-on: ubuntu-latest
     steps:
-    # Step 1: Checkout the code from the PR
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    # Step 2: Set up Node.js environment
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22'
-        cache: 'npm'
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
 
-    # Step 3: Install npm/ci dependencies
-    - name: Install dependencies
-      run: |
-        if [ -e yarn.lock ]; then
-          yarn install --frozen-lockfile
-        elif [ -e package-lock.json ]; then
-          npm ci
-        else
-          npm i
-        fi
+      - name: Cache Node.js modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/yarn
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
-    # Step 4: Run ESLint (code linting)
-    - name: Run ESLint
-      run: npm run lint  # This assumes you have an npm script to lint the code
+      - name: Install dependencies
+        run: |
+          if [ -e yarn.lock ]; then
+            yarn install --frozen-lockfile
+          elif [ -e package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
-    # Step 5: Run unit tests
-    - name: Run unit tests
-      run: npm run test  # Replace with your test command, such as jest or mocha
+      - name: Run ESLint
+        run: npm run lint
 
-    # Step 6: Run build to ensure there are no build issues
-    - name: Build the project
-      run: npm run build  # This ensures that the app builds successfully
+  # Job 2: Run Tests
+  test:
+    runs-on: ubuntu-latest
+    needs: install_and_lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    # Step 7: Run npm audit to check for vulnerabilities
-    #- name: Run npm audit
-    #  run: npm audit --production
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install dependencies
+        run: |
+          if [ -e yarn.lock ]; then
+            yarn install --frozen-lockfile
+          elif [ -e package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Run unit tests
+        run: npm run test
+
+  # Job 3: Build
+  build:
+    runs-on: ubuntu-latest
+    needs: install_and_lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install dependencies
+        run: |
+          if [ -e yarn.lock ]; then
+            yarn install --frozen-lockfile
+          elif [ -e package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Build the project
+        run: npm run build
+
+  # Job 4: Audit
+  audit:
+    runs-on: ubuntu-latest
+    needs: install_and_lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install dependencies
+        run: |
+          if [ -e yarn.lock ]; then
+            yarn install --frozen-lockfile
+          elif [ -e package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Run npm audit
+        run: npm audit --production
