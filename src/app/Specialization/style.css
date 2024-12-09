@@ -1,0 +1,68 @@
+/* Stilizarea generală a containerului formularului */
+.form-container {
+    background: linear-gradient(to bottom, #7f9cf5, #a7c5f5); /* Gradient albastru */
+    padding: 2rem;
+    border-radius: 15px;
+    max-width: 500px;
+    margin: auto;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin-top: 5%;
+  }
+  
+  /* Stilul titlului */
+  h1 {
+    color: white;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Stilizarea etichetelor și inputurilor */
+  .input-container {
+    margin-bottom: 1.5rem;
+  }
+  
+  .input-container label {
+    display: block;
+    color: white;
+    font-size: 1rem;
+    text-align: left;
+    margin-bottom: 0.5rem;
+  }
+  
+  .input-container select,
+  .input-container textarea {
+    width: 100%;
+    padding: 1rem;
+    margin-top: 0.5rem;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    font-size: 1rem;
+    box-sizing: border-box;
+  }
+  
+  textarea {
+    resize: vertical;
+    height: 120px;
+  }
+  
+  /* Stilizarea butonului de submit */
+  .button-container {
+    margin-top: 1.5rem;
+  }
+  
+  button {
+    padding: 0.8rem 1.5rem;
+    border-radius: 5px;
+    border: none;
+    background-color: #5e8fff;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    width: 100%;
+  }
+  
+  button:hover {
+    opacity: 0.8;
+  }
+  

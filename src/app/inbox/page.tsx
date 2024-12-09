@@ -7,84 +7,89 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import * as Dialog from '@radix-ui/react-dialog';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 
-const cardsData = [
-  {
-    materie: 'Matematică Avansată',
-    profesor: 'Prof. Dr. Ion Popescu',
-    stare: 'Pending',
-    dataExamen: null,
-  },
-  {
-    materie: 'Programare Web',
-    profesor: 'Prof. Dr. Ana Ionescu',
-    stare: 'Done',
-    dataExamen: '2024-11-25T10:00:00',
-  },
-  {
-    materie: 'Baze de Date',
-    profesor: 'Prof. Dr. Mihai Georgescu',
-    stare: 'Netrimisă',
-    dataExamen: null,
-  },
-  {
-    materie: 'Structuri de Date',
-    profesor: 'Prof. Dr. Maria Constantinescu',
-    stare: 'Done',
-    dataExamen: '2024-12-05T14:00:00',
-  },
-  {
-    materie: 'Inteligență Artificială',
-    profesor: 'Prof. Dr. Dan Dumitrescu',
-    stare: 'Pending',
-    dataExamen: null,
-  },
-  {
-    materie: 'Rețele de Calculatoare',
-    profesor: 'Prof. Dr. Elena Vasilescu',
-    stare: 'Netrimisă',
-    dataExamen: null,
-  },
-];
+// Tipul CardData definit
+type CardData = {
+  materie: string;
+  profesor: string;
+  stare: 'Done' | 'Pending' | 'Netrimisă' | 'Active'; // "Active" adăugat pentru status
+  dataExamen: string | null;
+};
+
+// Tipul pentru răspunsul de la API
+type ApiResponse = {
+  title: string;
+  numeProfesor: string;
+  prenumeProfesor: string;
+  status: 'Active' | 'Pending' | 'Netrimisă'; // Tipuri de status disponibile
+};
 
 export default function Cards() {
-  //   const [suggestedDates, setSuggestedDates] = useState<
-  //     Record<number, string | null>
-  //   >({});
+  const [cardsData, setCardsData] = useState<CardData[]>([
+    {
+      materie: 'Loading...',
+      profesor: 'Loading...',
+      stare: 'Pending', // "Pending" ca stare de încărcare
+      dataExamen: null,
+    },
+  ]);
+
+  // Fetch API pentru a obține datele
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('https://localhost:7267/GetCoursersForExamByUserID?userId=1'); // URL-ul corect
+      if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        
+        // Tipizează răspunsul de la API
+        const data: ApiResponse[] = await response.json();
+
+        // Mapează datele de la backend într-un format care respectă tipul `CardData`
+        const mappedData: CardData[] = data.map((item) => ({
+          materie: item.title,
+          profesor: `${item.numeProfesor} ${item.prenumeProfesor}`,
+          stare: item.status === 'Active' ? 'Done' : item.status === 'Pending' ? 'Pending' : 'Netrimisă',
+          dataExamen: null, // Poți adăuga logică pentru data examenului dacă există
+        }));
+
+        setCardsData(mappedData); // Actualizează cardsData cu datele mapate
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData(); // Apel API la montarea componentei
+  }, []);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {cardsData.map((cardData, index) => CourseCard(index, cardData))}
+      {cardsData.map((cardData, index) => (
+        <CourseCard key={index} cardData={cardData} />
+      ))}
     </div>
   );
 }
 
-function CourseCard(
-  index: number,
-  cardData: {
-    materie: string;
-    profesor: string;
-    stare: string;
-    dataExamen: string | null;
-  },
-) {
+function CourseCard({ cardData }: { cardData: CardData }) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  // const [date, setDate] = React.useState<Date>(new Date());
 
-  // const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const renderStatus = () => {
     switch (cardData.stare) {
       case 'Done':
         return (
           <div className="text-sm text-green-800">
             Data examenului:{' '}
-            {new Date(cardData.dataExamen!).toLocaleString('ro-RO', {
-              dateStyle: 'short',
-              timeStyle: 'short',
-            })}
+            {cardData.dataExamen
+              ? new Date(cardData.dataExamen).toLocaleString('ro-RO', {
+                  dateStyle: 'short',
+                  timeStyle: 'short',
+                })
+              : 'Neprogramată'}
           </div>
         );
       case 'Pending':
@@ -131,30 +136,12 @@ function CourseCard(
                     required
                   />
 
-                  {/* <Calendar
-                    mode="single"
-                    // selected={date}
-                    // onSelect={setDate}}
-                    className="rounded-md border"
-                  /> */}
-
-                  {/* Suggest button */}
                   <div className="flex justify-end mt-4">
                     <Button variant="outline">Sugerează</Button>
                   </div>
                 </Dialog.Content>
               </Dialog.Portal>
             </Dialog.Root>
-
-            {/* <DayPickerProvider
-              initialProps={{
-                mode: 'single',
-                selected: selectedDate,
-                onSelect: setSelectedDate,
-              }}
-            />
-
-            <DateSuggestionPopup /> */}
           </div>
         );
       default:
@@ -163,7 +150,7 @@ function CourseCard(
   };
 
   return (
-    <Card key={index} className="shadow-lg">
+    <Card className="shadow-lg">
       <CardHeader>
         <CardTitle>{cardData.materie}</CardTitle>
         <CardDescription>Profesor: {cardData.profesor}</CardDescription>
