@@ -1,3 +1,4 @@
+[![PR Checks](https://github.com/O-W-C-A/owca-exam-planner-frontend/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/O-W-C-A/owca-exam-planner-frontend/actions/workflows/pr-checks.yml)
 # Instrucțiuni pentru rularea proiectului OWCA
 
 ## Cerințe preliminare
