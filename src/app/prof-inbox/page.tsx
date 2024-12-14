@@ -9,7 +9,6 @@ import {
 } from '@/components/ui/card';
 import { CalendarIcon } from 'lucide-react';
 
-// Definirea tipului de date pe care le așteptăm de la API
 interface ExamRequestDto {
   courseId: number;
   courseName: string;
@@ -18,8 +17,8 @@ interface ExamRequestDto {
   examDate: string | null;
   timeStart: string | null;
   status: string;
-  id: number; // Adăugăm ID-ul pentru a-l folosi în API call
-  details:string;
+  id: number;
+  details: string;
 }
 
 interface RoomDTO {
@@ -41,9 +40,9 @@ interface ProfessorDTO {
 export default function Cards() {
   const [cardsData, setCardsData] = useState<ExamRequestDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [rooms, setRooms] = useState<RoomDTO[]>([]); // Definim tipul de date pentru camere
+  const [rooms, setRooms] = useState<RoomDTO[]>([]);
   const [assistants, setAssistants] = useState<{ [key: number]: ProfessorDTO[] }>({});
-  const [selectedRoom, setSelectedRoom] = useState<{ [key: number]: number }>({});
+  const [selectedRoom, setSelectedRoom] = useState<{ [key: number]: number[] }>({}); // Multiple rooms for each exam
   const [selectedAssistant, setSelectedAssistant] = useState<{ [key: number]: number }>({});
 
   useEffect(() => {
@@ -114,9 +113,9 @@ export default function Cards() {
   };
 
   const handleReject = async (id: number) => {
-    const roomsId = Object.values(selectedRoom).filter((roomId) => roomId);
-    const assistantId = selectedAssistant[id]; // Obținem asistentul selectat pentru examenul curent
-  
+    const roomsId = selectedRoom[id] || [];
+    const assistantId = selectedAssistant[id];
+
     try {
       const response = await fetch(`https://localhost:7267/UpdateExamStatus/${id}`, {
         method: 'PATCH',
@@ -126,14 +125,14 @@ export default function Cards() {
         body: JSON.stringify({
           status: 'Rejected',
           roomsId: roomsId,
-          assistentId: assistantId, // Adăugăm și ID-ul asistentului
+          assistentId: assistantId,
         }),
       });
-  
+
       if (!response.ok) {
         throw new Error(`Failed to reject exam. Status: ${response.status}`);
       }
-  
+
       setCardsData((prevCards) =>
         prevCards.map((card) =>
           card.id === id ? { ...card, status: 'Rejected' } : card
@@ -144,10 +143,9 @@ export default function Cards() {
       alert('Failed to reject the exam. Please try again later.');
     }
   };
-  
 
   const handleApprove = async (id: number) => {
-    const roomsId = Object.values(selectedRoom).filter((roomId) => roomId);
+    const roomsId = selectedRoom[id] || [];
     const assistantId = selectedAssistant[id];
 
     try {
@@ -159,7 +157,7 @@ export default function Cards() {
         body: JSON.stringify({
           status: 'Approved',
           roomsId: roomsId,
-          assistentId: assistantId, // Trimiți și ID-ul asistentului selectat
+          assistentId: assistantId,
         }),
       });
 
@@ -179,7 +177,15 @@ export default function Cards() {
   };
 
   const handleRoomChange = (id: number, roomID: number) => {
-    setSelectedRoom((prevState) => ({ ...prevState, [id]: roomID }));
+    setSelectedRoom((prevState) => {
+      const updatedRooms = [...(prevState[id] || [])];
+      if (updatedRooms.includes(roomID)) {
+        updatedRooms.splice(updatedRooms.indexOf(roomID), 1);
+      } else {
+        updatedRooms.push(roomID);
+      }
+      return { ...prevState, [id]: updatedRooms };
+    });
   };
 
   const handleAssistantChange = (id: number, assistantID: number) => {
@@ -213,20 +219,26 @@ export default function Cards() {
                 ) : null}
 
                 <div className="relative pt-3">
-                  <select
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                    value={selectedRoom[card.id] || ''}
-                    onChange={(e) => handleRoomChange(card.id, Number(e.target.value))}
-                  >
-                    <option value="" disabled>Selectează sala</option>
-                    {rooms.map((room) => (
-                      <option key={room.roomID} value={room.roomID}>
-                        {room.name} ({room.location}, Capacitate: {room.capacity})
-                      </option>
-                    ))}
-                  </select>
+                  {[1, 2, 3].map((roomSelectNumber) => (
+                    <select
+                      key={roomSelectNumber}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                      value={selectedRoom[card.id]?.[roomSelectNumber - 1] || ''}
+                      onChange={(e) =>
+                        handleRoomChange(card.id, Number(e.target.value))
+                      }
+                      required={selectedRoom[card.id]?.length > 0}
+                    >
+                      <option value="" disabled>Selectează sala {roomSelectNumber}</option>
+                      {rooms.map((room) => (
+                        <option key={room.roomID} value={room.roomID}>
+                          {room.name} ({room.location}, Capacitate: {room.capacity})
+                        </option>
+                      ))}
+                    </select>
+                  ))}
                 </div>
-                
+
                 <div className="relative pt-3">
                   <select
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
@@ -242,14 +254,15 @@ export default function Cards() {
                     ))}
                   </select>
                 </div>
+                
                 <div className="relative pt-3">
-                {/* Adăugăm textBox readOnly pentru descriere */}
-                <textarea
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                  value={card.details}
-                  readOnly
-                />
-              </div>
+                  <textarea
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                    value={card.details}
+                    readOnly
+                  />
+                </div>
+
                 <div className="flex justify-center gap-2 mt-4">
                   <button
                     className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
