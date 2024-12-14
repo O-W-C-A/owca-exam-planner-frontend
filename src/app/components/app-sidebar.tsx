@@ -44,6 +44,11 @@ const items = [
     url: 'settings',
     icon: Settings,
   },
+  {
+    title: 'Create Exam Request',
+    url: 'ExamRequest',
+    icon: Plus,
+  },
 ];
 
 export function AppSidebar() {
