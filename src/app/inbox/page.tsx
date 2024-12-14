@@ -41,7 +41,7 @@ export default function Cards() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('https://localhost:7267/GetCoursersForExamByUserID?userId=1'); // URL-ul corect
+        const response = await fetch('https://localhost:7267/GetCoursersForExamByUserID?userId=816'); // URL-ul corect
       if (!response.ok) {
           throw new Error('Failed to fetch data');
         }
