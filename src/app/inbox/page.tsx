@@ -32,7 +32,7 @@ export default function Cards() {
     {
       materie: 'Loading...',
       profesor: 'Loading...',
-      stare: 'Pending', // "Pending" ca stare de încărcare
+      stare: 'Pending', // "Pending" ca stare de încărcar
       dataExamen: null,
     },
   ]);
