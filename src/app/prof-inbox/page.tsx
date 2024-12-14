@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import React, { useEffect, useState } from 'react';
 import {
   Card,
@@ -11,6 +11,7 @@ import { CalendarIcon } from 'lucide-react';
 
 // Definirea tipului de date pe care le așteptăm de la API
 interface ExamRequestDto {
+  courseId: number;
   courseName: string;
   firstNameProf: string;
   lastNameProf: string;
@@ -18,12 +19,32 @@ interface ExamRequestDto {
   timeStart: string | null;
   status: string;
   id: number; // Adăugăm ID-ul pentru a-l folosi în API call
+  details:string;
+}
+
+interface RoomDTO {
+  roomID: number;
+  name: string;
+  location: string;
+  capacity: number;
+  description: string;
+  departmentName?: string;
+  examRequestCount: number;
+}
+
+interface ProfessorDTO {
+  profID: number;
+  firstName: string;
+  lastName: string;
 }
 
 export default function Cards() {
   const [cardsData, setCardsData] = useState<ExamRequestDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [timeStart, setTimeStart] = useState<string>("");
+  const [rooms, setRooms] = useState<RoomDTO[]>([]); // Definim tipul de date pentru camere
+  const [assistants, setAssistants] = useState<{ [key: number]: ProfessorDTO[] }>({});
+  const [selectedRoom, setSelectedRoom] = useState<{ [key: number]: number }>({});
+  const [selectedAssistant, setSelectedAssistant] = useState<{ [key: number]: number }>({});
 
   useEffect(() => {
     const fetchExamRequests = async () => {
@@ -41,7 +62,6 @@ export default function Cards() {
 
         const data: ExamRequestDto[] = await response.json();
         setCardsData(data);
-        console.log(data);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -49,67 +69,121 @@ export default function Cards() {
       }
     };
 
+    const fetchRooms = async () => {
+      try {
+        const response = await fetch('https://localhost:7267/GetAllRooms', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch rooms');
+        }
+
+        const data: RoomDTO[] = await response.json();
+        setRooms(data);
+      } catch (error) {
+        console.error('Error fetching rooms:', error);
+      }
+    };
+
     fetchExamRequests();
+    fetchRooms();
   }, []);
 
-  // Funcția care face apelul API pentru a actualiza statusul examenului ca "Rejected"
-  const handleReject = async (id: number) => {
+  const fetchAssistants = async (courseId: number) => {
     try {
-      const response = await fetch(`https://localhost:7267/UpdateExamStatus/${id}?status=Rejected`, {
-        method: 'PATCH', // Folosim PATCH pentru a actualiza statusul
+      const response = await fetch(`https://localhost:7267/GetAssistentByCourse/${courseId}`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Failed to reject exam. Status code: ${response.status}, Error: ${errorText}`);
-        throw new Error(`Failed to reject exam. Status: ${response.status}`);
+        throw new Error('Failed to fetch assistants');
       }
 
-      setCardsData(prevCards =>
-        prevCards.map(card =>
+      const data: ProfessorDTO[] = await response.json();
+      setAssistants((prev) => ({ ...prev, [courseId]: data }));
+    } catch (error) {
+      console.error('Error fetching assistants:', error);
+    }
+  };
+
+  const handleReject = async (id: number) => {
+    const roomsId = Object.values(selectedRoom).filter((roomId) => roomId);
+    const assistantId = selectedAssistant[id]; // Obținem asistentul selectat pentru examenul curent
+  
+    try {
+      const response = await fetch(`https://localhost:7267/UpdateExamStatus/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'Rejected',
+          roomsId: roomsId,
+          assistentId: assistantId, // Adăugăm și ID-ul asistentului
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Failed to reject exam. Status: ${response.status}`);
+      }
+  
+      setCardsData((prevCards) =>
+        prevCards.map((card) =>
           card.id === id ? { ...card, status: 'Rejected' } : card
         )
       );
-      console.log(`Exam with ID ${id} rejected successfully`);
     } catch (error) {
       console.error('Error rejecting exam:', error);
       alert('Failed to reject the exam. Please try again later.');
     }
   };
+  
 
-  // Funcția care face apelul API pentru a actualiza statusul examenului ca "Approved"
   const handleApprove = async (id: number) => {
+    const roomsId = Object.values(selectedRoom).filter((roomId) => roomId);
+    const assistantId = selectedAssistant[id];
+
     try {
-      const response = await fetch(`https://localhost:7267/UpdateExamStatus/${id}?status=Approved`, {
-        method: 'PATCH', // Folosim PATCH pentru a actualiza statusul
+      const response = await fetch(`https://localhost:7267/UpdateExamStatus/${id}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          status: 'Approved',
+          roomsId: roomsId,
+          assistentId: assistantId, // Trimiți și ID-ul asistentului selectat
+        }),
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Failed to approve exam. Status code: ${response.status}, Error: ${errorText}`);
         throw new Error(`Failed to approve exam. Status: ${response.status}`);
       }
 
-      setCardsData(prevCards =>
-        prevCards.map(card =>
+      setCardsData((prevCards) =>
+        prevCards.map((card) =>
           card.id === id ? { ...card, status: 'Approved' } : card
         )
       );
-      console.log(`Exam with ID ${id} approved successfully`);
     } catch (error) {
       console.error('Error approving exam:', error);
       alert('Failed to approve the exam. Please try again later.');
     }
   };
 
-  const handleTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTimeStart(event.target.value);
+  const handleRoomChange = (id: number, roomID: number) => {
+    setSelectedRoom((prevState) => ({ ...prevState, [id]: roomID }));
+  };
+
+  const handleAssistantChange = (id: number, assistantID: number) => {
+    setSelectedAssistant((prevState) => ({ ...prevState, [id]: assistantID }));
   };
 
   if (loading) {
@@ -137,45 +211,55 @@ export default function Cards() {
                     <CalendarIcon className="ml-2 h-5 w-5 text-green-800" />
                   </div>
                 ) : null}
-                {card.timeStart ? (
-                  <div className="relative pt-3">
-                    <div className="absolute inset-y-0 end-0 top-0 flex items-center pe-3.5 pointer-events-none">
-                      <svg
-                        className="w-4 h-4 text-gray-500 dark:text-gray-400"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm11-4a1 1 0 1 0-2 0v4a1 1 0 0 0 .293.707l3 3a1 1 0 0 0 1.414-1.414L13 11.586V8Z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <input
-                      type="time"
-                      id="time"
-                      className="bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      min="09:00"
-                      max="18:00"
-                      value={timeStart || new Date(`1970-01-01T${card.timeStart}`).toISOString().slice(11, 16)}
-                      onChange={handleTimeChange}
-                      required
-                    />
-                  </div>
-                ) : null}
+
+                <div className="relative pt-3">
+                  <select
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    value={selectedRoom[card.id] || ''}
+                    onChange={(e) => handleRoomChange(card.id, Number(e.target.value))}
+                  >
+                    <option value="" disabled>Selectează sala</option>
+                    {rooms.map((room) => (
+                      <option key={room.roomID} value={room.roomID}>
+                        {room.name} ({room.location}, Capacitate: {room.capacity})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="relative pt-3">
+                  <select
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    value={selectedAssistant[card.id] || ''}
+                    onFocus={() => !assistants[card.courseId] && fetchAssistants(card.courseId)}
+                    onChange={(e) => handleAssistantChange(card.id, Number(e.target.value))}
+                  >
+                    <option value="" disabled>Selectează asistentul</option>
+                    {(assistants[card.courseId] || []).map((assistant) => (
+                      <option key={assistant.profID} value={assistant.profID}>
+                        {assistant.firstName} {assistant.lastName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="relative pt-3">
+                {/* Adăugăm textBox readOnly pentru descriere */}
+                <textarea
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                  value={card.details}
+                  readOnly
+                />
+              </div>
                 <div className="flex justify-center gap-2 mt-4">
                   <button
                     className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={() => handleApprove(card.id)} // Adăugăm onClick pentru aprobare
+                    onClick={() => handleApprove(card.id)}
                   >
                     Aproba
                   </button>
                   <button
                     className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={() => handleReject(card.id)} // Adăugăm onClick pentru respingere
+                    onClick={() => handleReject(card.id)}
                   >
                     Respinge
                   </button>

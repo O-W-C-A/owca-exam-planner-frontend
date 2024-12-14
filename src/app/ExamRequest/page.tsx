@@ -16,7 +16,7 @@ const CreateExamRequestPage = () => {
   const [courses, setCourses] = useState<CourseDTO[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
   const [details, setDetails] = useState<string>('');
-  const [date] = useState<string>(new Date().toISOString());
+  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]); // Formatul pentru data selectată (YYYY-MM-DD)
   const [loading, setLoading] = useState<boolean>(true);
 
   // Fetch initial data
@@ -41,7 +41,7 @@ const CreateExamRequestPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedCourse) {
+    if (!selectedCourse || !date) {
       alert('Please fill in all required fields.');
       return;
     }
@@ -51,7 +51,7 @@ const CreateExamRequestPage = () => {
       courseID: selectedCourse, // Passing the selected course ID (number)
       sessionID: 1, // Fixed
       type: '', // No type for now
-      date: new Date(date).toISOString(),
+      date: new Date(date).toISOString(), // Set the date chosen by the user
       timeStart: '12:00:00', // Fixed time start
       duration: '01:00:00', // Fixed duration
       details: details,
@@ -100,6 +100,17 @@ const CreateExamRequestPage = () => {
               </option>
             ))}
           </select>
+        </div>
+
+        {/* Date Selection */}
+        <div className="input-container">
+          <label htmlFor="date">Date:</label>
+          <input
+            type="date"
+            id="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)} // Update the date when selected
+          />
         </div>
 
         {/* Details */}
