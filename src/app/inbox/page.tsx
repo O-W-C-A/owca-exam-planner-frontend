@@ -57,7 +57,7 @@ export default function Cards() {
           dataExamen: null, // Poți adăuga logică pentru data examenului dacă există
         }));
 
-        setCardsData(mappedData); // Actualizează cardsData cu datele mapate
+        setCardsData(mappedData); // Actualizează cardsData cu datele mapat
       } catch (error) {
         console.error('Error fetching data:', error);
       }
