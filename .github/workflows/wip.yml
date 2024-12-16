@@ -1,0 +1,20 @@
+name: WIP Status
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  wip:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Fail if PR title contains "WIP" or "Work in Progress"
+      - name: Check PR title
+        run: |
+          if [[ "${{ github.event.pull_request.title }}" =~ (WIP|Work[[:space:]]in[[:space:]]Progress) ]]; then
+            echo "PR title contains 'WIP' or 'Work in Progress'. Failing the workflow."
+            exit 1
+          else
+            echo "PR title is valid."
+          fi
