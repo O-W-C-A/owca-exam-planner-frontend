@@ -1,6 +1,18 @@
 import styles from './LoginForm.module.css';
 
-const LoginForm = ({ formData, handleChange, handleSubmit, error }: any) => {
+interface FormData {
+    email: string;
+    password: string;
+}
+
+interface Props {
+    formData: FormData;
+    handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    handleSubmit: (e: React.FormEvent) => void;
+    error: string | null;
+}
+
+const LoginForm: React.FC<Props> = ({ formData, handleChange, handleSubmit, error }) => {
     return (
         <div className={styles.container}>
             <form onSubmit={handleSubmit} className={styles.form}>

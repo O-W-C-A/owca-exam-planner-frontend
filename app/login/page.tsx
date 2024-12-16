@@ -39,17 +39,24 @@ export default function LoginPage() {
                 passwordHash: formData.password, // hash the password before sending
             });
 
-            switch (res.data.role) {
-                case 'admin':
-                    Cookies.set('authToken', res.data.token); // Store token in cookie
+            const { token, role, userId } = res.data;
+
+            // Store token and user data in cookies
+            Cookies.set('authToken', token, { path: '/' });
+            Cookies.set('role', role, { path: '/' });
+            Cookies.set('userId', userId, { path: '/' });
+            
+            // Cookies.set('userInfo', JSON.stringify({ role, userId }), { path: '/' });
+
+            // Redirect based on user role
+            switch (role) {
+                case 'Admin':
                     router.push('/dashboard/admin');
                     break;
-                case 'professor':
-                    Cookies.set('authToken', res.data.token); // Store token in cookie
+                case 'Professor':
                     router.push('/dashboard/professor');
                     break;
-                case 'student':
-                    Cookies.set('authToken', res.data.token); // Store token in cookie
+                case 'Student':
                     router.push('/dashboard/student');
                     break;
                 default:
