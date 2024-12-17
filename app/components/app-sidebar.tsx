@@ -1,5 +1,5 @@
 'use client';
-import { Calendar, Inbox, Search, Settings, LogOut, } from 'lucide-react';
+import { Calendar, Inbox, LogOut, Settings } from 'lucide-react';
 
 import {
   Sidebar,
@@ -16,7 +16,7 @@ import {
 const items = [
   {
     title: 'Calendar',
-    url: '/',
+    url: 'calendar',
     icon: Calendar,
   },
   {
@@ -29,11 +29,11 @@ const items = [
     url: 'prof-inbox',
     icon: Inbox,
   },
-  {
-    title: 'Search',
-    url: 'search',
-    icon: Search,
-  },
+  // {
+  //   title: 'Search',
+  //   url: 'search',
+  //   icon: Search,
+  // },
 
   {
     title: 'Settings',
@@ -45,7 +45,7 @@ const items = [
     title: 'Logout',
     url: 'logout',
     icon: LogOut,
-  }
+  },
 ];
 
 export function AppSidebar() {
