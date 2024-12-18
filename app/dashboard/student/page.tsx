@@ -1,10 +1,10 @@
-import Calendar from '../../components/calendarfull';
 import '@/app/globals.css';
 import React from 'react';
+import MyCalendar from '../calendar/page';
 
 const page = () => {
     return (
-        <Calendar/>
+        <MyCalendar/>
     );
 };
 
