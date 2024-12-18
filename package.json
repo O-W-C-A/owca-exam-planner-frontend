@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest"
+    "test": "jest",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.3",
@@ -40,6 +42,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/webcrypto": "^0.0.30",
+    "cypress": "^13.17.0",
     "eslint": "^9",
     "eslint-config-next": "15.1.0",
     "postcss": "^8",

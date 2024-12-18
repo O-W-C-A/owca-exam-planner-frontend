@@ -5,7 +5,7 @@ import Cookies from 'js-cookie';
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 const api = axios.create({
-    baseURL: isDevelopment ? 'https://localhost:7267/' : 'https://owca-exam-planner.azurewebsites.net/',
+    baseURL: isDevelopment ? 'https://owca-exam-planner.azurewebsites.net/' : 'https://localhost:7267/',
 });
 
 api.interceptors.request.use((config) => {
