@@ -3,9 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "cross-env NEXT_PUBLIC_BASE_URL=https://owca-exam-planner.azurewebsites.net/ next dev",
+    "dev:localhost": "cross-env NEXT_PUBLIC_BASE_URL=https://localhost:7267/ next dev",
+    "build": "cross-env NEXT_PUBLIC_BASE_URL=https://owca-exam-planner.azurewebsites.net/ next build",
+    "build:localhost": "cross-env NEXT_PUBLIC_BASE_URL=https://localhost:7267/ next build",
+    "start": "cross-env NEXT_PUBLIC_BASE_URL=https://owca-exam-planner.azurewebsites.net/ next start",
+    "start:localhost": "cross-env NEXT_PUBLIC_BASE_URL=https://localhost:7267/ next start",
     "lint": "next lint",
     "test": "jest"
   },
@@ -36,6 +39,7 @@
   "devDependencies": {
     "@types/node": "22.10.2",
     "@types/react-big-calendar": "^1.16.0",
+    "cross-env": "^7.0.3",
     "eslint": "^9.17.0",
     "eslint-config-next": "15.1.1",
     "typescript": "5.7.2"

@@ -1,13 +1,11 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-// Determine the environment (development or production)
-const isDevelopment = process.env.NODE_ENV === 'development';
+// Use the URL passed via the environment variable
+const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
 
 const api = axios.create({
-  baseURL: isDevelopment
-    ? 'https://owca-exam-planner.azurewebsites.net/'
-    : 'https://localhost:7267/',
+  baseURL,
 });
 
 api.interceptors.request.use((config) => {
