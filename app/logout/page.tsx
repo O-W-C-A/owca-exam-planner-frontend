@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
-import Logout from './Logout';
+import Logout from '../components/logout';
 
 export default function LogOut() {
   const [showPopup, setShowPopup] = useState(true);

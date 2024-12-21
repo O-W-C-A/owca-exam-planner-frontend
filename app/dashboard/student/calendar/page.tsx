@@ -67,42 +67,41 @@ const MyCalendar: React.FC = () => {
   };
 
   return (
-    <div className="">
+    <div className="h-full flex flex-col gap-4">
       <Select
         value={selectedOption}
         onChange={handleChange}
         options={options}
         className="w-64"
       />
-      <Calendar
-        localizer={localizer}
-        events={events}
-        startAccessor="start"
-        endAccessor="end"
-        style={{ height: 500 }}
-        defaultView={Views.WEEK} // Poate fi DAY, WEEK sau MONTH
-        selectable
-        onSelectEvent={(event) => {
-          console.log('Eveniment selectat: ', event);
-          const isConfirmed = event.isConfirmed;
-          if (!isConfirmed) {
-            setSelectedEvent(event);
-            setIsModalOpen(true);
-          }
-        }}
-        onSelectSlot={(slotInfo) => console.log('Slot selectat: ', slotInfo)}
-        eventPropGetter={(event) => {
-          const backgroundColor = event.isConfirmed ? 'green' : 'red';
-          return {
+      <div className="flex-1">
+        <Calendar
+          localizer={localizer}
+          events={events}
+          startAccessor="start"
+          endAccessor="end"
+          className="h-full"
+          defaultView={Views.WEEK}
+          selectable
+          onSelectEvent={(event) => {
+            console.log('Eveniment selectat: ', event);
+            const isConfirmed = event.isConfirmed;
+            if (!isConfirmed) {
+              setSelectedEvent(event);
+              setIsModalOpen(true);
+            }
+          }}
+          onSelectSlot={(slotInfo) => console.log('Slot selectat: ', slotInfo)}
+          eventPropGetter={(event) => ({
             style: {
-              backgroundColor,
+              backgroundColor: event.isConfirmed ? 'green' : 'red',
               color: 'white',
               borderRadius: '5px',
               border: 'none',
             },
-          };
-        }}
-      />
+          })}
+        />
+      </div>
 
       {/* Modal cu două butoane */}
       {isModalOpen && selectedEvent && (
