@@ -2,9 +2,11 @@ import React from 'react';
 import { StudentSidebar } from '@/app/components/StudentSidebar';
 
 export default function StudentLayout({
-  children,
+    children,
+    readonly = false,
 }: {
-  children: React.ReactNode;
+    children: React.ReactNode;
+    readonly?: boolean;
 }) {
   return (
     <>

@@ -23,7 +23,7 @@ export const useSidebar = () => {
   return context;
 };
 
-export const SidebarProvider: React.FC = ({ children }) => {
+export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
   const [open, setOpen] = React.useState(true);
@@ -32,31 +32,23 @@ export const SidebarProvider: React.FC = ({ children }) => {
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
   }, [isMobile]);
 
-  React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === SIDEBAR_KEYBOARD_SHORTCUT && (event.metaKey || event.ctrlKey)) {
-        event.preventDefault();
-        toggleSidebar();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggleSidebar]);
+  const state = (open ? 'expanded' : 'collapsed') as 'expanded' | 'collapsed';
 
-  const state = open ? 'expanded' : 'collapsed';
+  const value: SidebarContext = React.useMemo(
+    () => ({
+      state,
+      open,
+      setOpen,
+      isMobile,
+      openMobile,
+      setOpenMobile,
+      toggleSidebar,
+    }),
+    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+  );
 
   return (
-    <SidebarContext.Provider
-      value={{
-        state,
-        open,
-        setOpen,
-        isMobile,
-        openMobile,
-        setOpenMobile,
-        toggleSidebar,
-      }}
-    >
+    <SidebarContext.Provider value={value}>
       {children}
     </SidebarContext.Provider>
   );
