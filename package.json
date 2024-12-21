@@ -10,7 +10,9 @@
     "start": "cross-env NEXT_PUBLIC_BASE_URL=https://owca-exam-planner.azurewebsites.net/ next start",
     "start:localhost": "cross-env NEXT_PUBLIC_BASE_URL=https://localhost:7267/ next start",
     "lint": "next lint",
-    "test": "jest"
+    "test": "jest",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.4",
