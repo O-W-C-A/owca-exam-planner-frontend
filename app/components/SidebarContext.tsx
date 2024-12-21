@@ -1,8 +1,6 @@
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-const SIDEBAR_KEYBOARD_SHORTCUT = 'b';
-
 type SidebarContext = {
   state: 'expanded' | 'collapsed';
   open: boolean;

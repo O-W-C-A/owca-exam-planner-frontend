@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import api from '@/utils/axiosInstance'; // Adjust if necessary to point to your C# API endpoint
 import LoginForm from './LoginForm';
@@ -13,6 +13,11 @@ export default function LoginPage() {
     });
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -67,6 +72,10 @@ export default function LoginPage() {
             setError('Login failed, please try again.');
         }
     };
+
+    if (!mounted) {
+        return null; // Or a loading state
+    }
 
     return (
         <LoginForm

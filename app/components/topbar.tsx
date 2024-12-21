@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LogOut, User } from 'lucide-react';
 import Logout from './logout';
 import { cn } from '@/utils/cn';
@@ -13,7 +13,16 @@ interface TopBarProps {
 const TopBar: React.FC<TopBarProps> = ({ className }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [mounted, setMounted] = useState(false);
   
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null; // Or a loading state
+  }
+
   // Get user role from cookies
   const userRole = Cookies.get('role')?.toLowerCase() || 'student';
 

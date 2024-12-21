@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Views } from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import Select from 'react-select';
@@ -16,6 +16,12 @@ type Event = {
 };
 
 const MyCalendar: React.FC = () => {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const [selectedOption, setSelectedOption] = useState<any>({
     value: 'George Mahalu',
     label: 'George Mahalu',
@@ -65,6 +71,10 @@ const MyCalendar: React.FC = () => {
   const handleCancel = (): void => {
     setIsModalOpen(false);
   };
+
+  if (!isClient) {
+    return <div>Loading...</div>; // Or a proper loading skeleton
+  }
 
   return (
     <div className="h-full flex flex-col gap-4">
