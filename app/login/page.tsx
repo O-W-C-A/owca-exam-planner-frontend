@@ -12,12 +12,38 @@ export default function LoginPage() {
         password: '',
     });
     const [error, setError] = useState<string | null>(null);
-    const router = useRouter();
     const [mounted, setMounted] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         setMounted(true);
-    }, []);
+        // Check if user is already logged in
+        const token = Cookies.get('authToken');
+        const role = Cookies.get('role')?.toLowerCase();
+
+        if (token && role) {
+            // Redirect based on role
+            switch (role) {
+                case 'student':
+                    router.push('/dashboard/student/calendar');
+                    break;
+                case 'professor':
+                    router.push('/dashboard/professor/calendar');
+                    break;
+                case 'admin':
+                    router.push('/dashboard/admin');
+                    break;
+                case 'secretary':
+                    router.push('/dashboard/secretary');
+                    break;
+                case 'studentleader':
+                    router.push('/dashboard/studentleader/calendar');
+                    break;
+                default:
+                    router.push('/dashboard');
+            }
+        }
+    }, [router]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -77,6 +103,7 @@ export default function LoginPage() {
         return null; // Or a loading state
     }
 
+    // Only show login form if not already logged in
     return (
         <LoginForm
             formData={formData}
