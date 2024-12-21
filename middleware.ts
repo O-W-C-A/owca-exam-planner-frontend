@@ -16,15 +16,15 @@ export async function middleware(request: NextRequest) {
         const requestedPath = request.nextUrl.pathname;
 
         // Check for role-based access control
-        if (requestedPath.startsWith('/dashboard/admin') && role !== 'Admin') {
+        if (requestedPath.startsWith('/dashboard/admin') && role !== 'admin') {
             return NextResponse.redirect(new URL('/unauthorized', request.url)); // Redirect unauthorized users
         }
 
-        if (requestedPath.startsWith('/dashboard/professor') && role !== 'Professor') {
+        if (requestedPath.startsWith('/dashboard/professor') && role !== 'professor') {
             return NextResponse.redirect(new URL('/unauthorized', request.url)); // Redirect unauthorized users
         }
 
-        if (requestedPath.startsWith('/dashboard/student') && role !== 'Student') {
+        if (requestedPath.startsWith('/dashboard/student') && role !== 'student') {
             return NextResponse.redirect(new URL('/unauthorized', request.url)); // Redirect unauthorized users
         }
 

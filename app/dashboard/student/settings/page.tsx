@@ -1,89 +1,78 @@
 // components/SettingsPage.tsx
 'use client';
-import { Button } from '@/app/components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/card';
-
 import { Input } from '@/app/components/input';
 import { Label } from '@/app/components/label';
-import Image from 'next/image';
-import { useState } from 'react';
+import { useUser } from '@/contexts/UserContext';
 
 export default function SettingsPage() {
-  const [profileImage, setProfileImage] = useState<string | null>(null);
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => setProfileImage(reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
+  const { user } = useUser();
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Setări Utilizator</h1>
-      <Card className="shadow-lg max-w-xl mx-auto">
+    <div className="h-full flex items-center justify-center p-6">
+      <Card className="w-full max-w-2xl shadow-lg">
         <CardHeader>
-          <CardTitle>Informații Personale</CardTitle>
+          <CardTitle>Personal Information</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center mb-6">
-            {profileImage ? (
-              <Image
-                src={profileImage}
-                alt="Profile"
-                className="w-24 h-24 rounded-full object-cover border border-gray-300"
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  type="text"
+                  id="firstName"
+                  value={user?.firstname || ''}
+                  disabled
+                  className="bg-gray-50"
+                />
+              </div>
+              <div>
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  type="text"
+                  id="lastName"
+                  value={user?.lastname || ''}
+                  disabled
+                  className="bg-gray-50"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="faculty">Faculty</Label>
+              <Input
+                type="text"
+                id="faculty"
+                value={user?.faculty || ''}
+                disabled
+                className="bg-gray-50"
               />
-            ) : (
-              <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                No Image
+            </div>
+
+            {user?.group && (
+              <div>
+                <Label htmlFor="group">Group</Label>
+                <Input
+                  type="text"
+                  id="group"
+                  value={user.group}
+                  disabled
+                  className="bg-gray-50"
+                />
               </div>
             )}
-            <label className="mt-4">
-              <span className="sr-only">Selectează o poză</span>
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="mt-2 text-sm"
-              />
-            </label>
-          </div>
 
-          {/* Formulare pentru informații personale */}
-          <form className="space-y-4">
             <div>
-              <Label htmlFor="nume">Nume</Label>
-              <Input type="text" disabled id="nume" placeholder="Popescu" />
-            </div>
-            <div>
-              <Label htmlFor="prenume">Prenume</Label>
-              <Input type="text" disabled id="prenume" placeholder="Ion" />
-            </div>
-            <div>
-              <Label htmlFor="grupa">Grupa</Label>
-              <Input type="text" disabled id="grupa" placeholder="3" />
-            </div>
-            <div>
-              <Label htmlFor="semigrupa">Semigrupa</Label>
-              <Input type="text" disabled id="semigrupa" placeholder="1b" />
-            </div>
-            <div>
-              <Label htmlFor="email">E-mail</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 type="email"
-                disabled
                 id="email"
-                placeholder="exemplu@facultate.ro"
+                value={user?.email || ''}
+                disabled
+                className="bg-gray-50"
               />
             </div>
-          </form>
-
-          {/* Butoane */}
-          <div className="flex justify-end mt-6 space-x-4">
-            <Button variant="secondary">Anulează</Button>
-            <Button variant="default">Salvează</Button>
           </div>
         </CardContent>
       </Card>

@@ -8,6 +8,8 @@ type User = {
   lastname: string;
   email: string;
   role?: string;
+  group?: string;
+  faculty?: string;
 } | null;
 
 type UserContextType = {
