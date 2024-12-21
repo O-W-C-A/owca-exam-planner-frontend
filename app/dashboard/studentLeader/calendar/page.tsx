@@ -13,7 +13,7 @@ type Event = {
   isConfirmed: boolean;
 };
 
-const StudentCalendar: React.FC = () => {
+const StudentLeaderCalendar: React.FC = () => {
   const [isClient, setIsClient] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -29,7 +29,7 @@ const StudentCalendar: React.FC = () => {
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch('/api/events/student');
+      const response = await fetch('/api/events/studentleader');
       if (!response.ok) throw new Error('Failed to fetch events');
       const data = await response.json();
       setEvents(data);
@@ -146,4 +146,4 @@ const StudentCalendar: React.FC = () => {
   );
 };
 
-export default StudentCalendar;
+export default StudentLeaderCalendar; 

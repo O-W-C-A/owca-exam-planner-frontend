@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { StudentSidebar } from '@/app/components/StudentSidebar';
 
-export default function StudentLayout({
+export default function StudentLeaderLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -19,6 +19,7 @@ export default function StudentLayout({
 
   return (
     <>
+      <StudentSidebar />
       <main className="flex-1 p-6 flex flex-col min-h-0">
         {children}
       </main>
