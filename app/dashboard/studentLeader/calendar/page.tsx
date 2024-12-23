@@ -5,6 +5,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import localizer from '@/app/helpers/localizer';
 import Cookies from 'js-cookie';
 import api from '@/utils/axiosInstance';
+import { ExamSuggestionPopup } from '@/app/components/ExamSuggestionPopup';
 
 type ExamType = 'Written' | 'Oral' | 'Project' | 'Practice';
 
@@ -37,6 +38,8 @@ const StudentLeaderCalendar: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<typeof Views[keyof typeof Views]>(Views.MONTH);
   const [date, setDate] = useState(new Date());
+  const [showSuggestionPopup, setShowSuggestionPopup] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -134,6 +137,27 @@ const StudentLeaderCalendar: React.FC = () => {
     );
   };
 
+  const handleSelectSlot = (slotInfo: { start: Date; end: Date }) => {
+    setSelectedDate(slotInfo.start);
+    setShowSuggestionPopup(true);
+  };
+
+  const handleSuggestionSubmit = async (data: {
+    professorId: string;
+    date: Date;
+    notes: string;
+  }) => {
+    try {
+      // Replace with your API endpoint
+      await api.post('/api/exam-suggestions', data);
+      // Optionally refresh the calendar
+      fetchEvents();
+    } catch (error) {
+      console.error('Failed to submit suggestion:', error);
+      // Handle error
+    }
+  };
+
   if (!isClient) {
     return <div>Loading calendar...</div>;
   }
@@ -193,6 +217,8 @@ const StudentLeaderCalendar: React.FC = () => {
           }}
           views={['month', 'week', 'day']}
           toolbar={true}
+          selectable
+          onSelectSlot={handleSelectSlot}
         />
       </div>
 
@@ -226,6 +252,15 @@ const StudentLeaderCalendar: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {selectedDate && (
+        <ExamSuggestionPopup
+          isOpen={showSuggestionPopup}
+          onClose={() => setShowSuggestionPopup(false)}
+          selectedDate={selectedDate}
+          onSubmit={handleSuggestionSubmit}
+        />
       )}
     </div>
   );
