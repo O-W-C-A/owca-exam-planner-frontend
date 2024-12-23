@@ -10,7 +10,7 @@ type ExamType = 'Written' | 'Oral' | 'Project' | 'Practice';
 
 type Event = {
   id: string;
-  title: string;          // Subject name
+  title: string;         // Subject name
   start: Date;           // Exam date and time
   end: Date;             // Exam end time
   isConfirmed: boolean;
@@ -29,7 +29,7 @@ type Event = {
   };
 };
 
-const StudentCalendar: React.FC = () => {
+const StudentLeaderCalendar: React.FC = () => {
   const [isClient, setIsClient] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -216,14 +216,6 @@ const StudentCalendar: React.FC = () => {
               {renderEventDetails(selectedEvent)}
 
               <div className="flex justify-end space-x-4 mt-6">
-                {!selectedEvent.isConfirmed && (
-                  <button
-                    onClick={handleConfirm}
-                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
-                  >
-                    Confirm
-                  </button>
-                )}
                 <button
                   onClick={() => setIsModalOpen(false)}
                   className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
@@ -239,4 +231,4 @@ const StudentCalendar: React.FC = () => {
   );
 };
 
-export default StudentCalendar;
+export default StudentLeaderCalendar;

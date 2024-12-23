@@ -1,25 +1,25 @@
 'use client';
-import { Calendar, Inbox } from 'lucide-react';
+import { Calendar, Settings, Users, MessageSquare, Inbox } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/utils/cn';
 import { useState } from 'react';
 import SidebarTrigger from './SidebarTrigger';
 
-const studentNavItems = [
+const studentLeaderNavItems = [
   {
     title: 'Calendar',
-    href: '/dashboard/student/calendar',
+    href: '/dashboard/studentleader/calendar',
     icon: Calendar,
   },
   {
     title: 'Inbox',
-    href: '/dashboard/student/inbox',
+    href: '/dashboard/studentleader/inbox',
     icon: Inbox,
   }
 ];
 
-export function StudentSidebar() {
+export function StudentLeaderSidebar() {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(true);
 
@@ -32,7 +32,7 @@ export function StudentSidebar() {
         )}
       >
         <nav className="p-2 pt-4">
-          {studentNavItems.map((item) => (
+          {studentLeaderNavItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}

@@ -9,7 +9,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const token = Cookies.get('authToken');
-    const role = Cookies.get('role');
+    const role = Cookies.get('role')?.toLowerCase();
 
     if (!token || !role) {
       router.push('/login');
@@ -19,12 +19,25 @@ export default function DashboardPage() {
     // Convert role to lowercase for URL consistency
     const userType = role.toLowerCase();
     
-    // Only redirect students to student dashboard
-    if (userType === 'student') {
-      router.push('/dashboard/student');
-    } else {
-      // For other roles, stay on their respective dashboards
-      router.push(`/dashboard/${userType}`);
+    // Handle different roles
+    switch (userType) {
+      case 'student':
+        router.push('/dashboard/student/calendar');
+        break;
+      case 'studentleader':
+        router.push('/dashboard/studentleader/calendar');
+        break;
+      case 'professor':
+        router.push('/dashboard/professor/calendar');
+        break;
+      case 'admin':
+        router.push('/dashboard/admin');
+        break;
+      case 'secretary':
+        router.push('/dashboard/secretary');
+        break;
+      default:
+        router.push('/dashboard');
     }
   }, [router]);
 

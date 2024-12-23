@@ -1,37 +1,46 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import Cookies from 'js-cookie'; // Import js-cookie for handling cookies
 
 export async function middleware(request: NextRequest) {
-    const tokenCookie = request.cookies.get('authToken'); // Get the token from cookies
-    const roleCookie = request.cookies.get('role'); // Get the token from cookies
-    const userIdCookie = request.cookies.get('userId'); // Get the token from cookies
+    const tokenCookie = request.cookies.get('authToken');
+    const roleCookie = request.cookies.get('role');
+    const userIdCookie = request.cookies.get('userId');
 
     if (!tokenCookie || !roleCookie || !userIdCookie) {
-        return NextResponse.redirect(new URL('/login', request.url)); // Redirect to login if no token or user info
+        return NextResponse.redirect(new URL('/login', request.url));
     }
 
     try {
-        const role = roleCookie.value;
+        const role = roleCookie.value.toLowerCase();
         const requestedPath = request.nextUrl.pathname;
 
         // Check for role-based access control
         if (requestedPath.startsWith('/dashboard/admin') && role !== 'admin') {
-            return NextResponse.redirect(new URL('/unauthorized', request.url)); // Redirect unauthorized users
+            return NextResponse.redirect(new URL('/unauthorized', request.url));
         }
 
         if (requestedPath.startsWith('/dashboard/professor') && role !== 'professor') {
-            return NextResponse.redirect(new URL('/unauthorized', request.url)); // Redirect unauthorized users
+            return NextResponse.redirect(new URL('/unauthorized', request.url));
         }
 
-        if (requestedPath.startsWith('/dashboard/student') && role !== 'student') {
-            return NextResponse.redirect(new URL('/unauthorized', request.url)); // Redirect unauthorized users
+        // Check studentleader path first (more specific)
+        if (requestedPath.startsWith('/dashboard/studentleader') && role !== 'studentleader') {
+            return NextResponse.redirect(new URL('/unauthorized', request.url));
         }
 
-        return NextResponse.next(); // Allow the request to proceed if all checks pass
+        // Then check student path (more general)
+        if (requestedPath.startsWith('/dashboard/student') && role !== 'student' && role !== 'studentleader') {
+            return NextResponse.redirect(new URL('/unauthorized', request.url));
+        }
+
+        if (requestedPath.startsWith('/dashboard/secretary') && role !== 'secretary') {
+            return NextResponse.redirect(new URL('/unauthorized', request.url));
+        }
+
+        return NextResponse.next();
     } catch (error) {
-        console.error('Error parsing user info or handling cookies:', error);
-        return NextResponse.redirect(new URL('/login', request.url)); // Redirect if an error occurs
+        console.error('Error handling cookies:', error);
+        return NextResponse.redirect(new URL('/login', request.url));
     }
 }
 

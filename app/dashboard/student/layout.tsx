@@ -1,6 +1,5 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { StudentSidebar } from '@/app/components/StudentSidebar';
 
 export default function StudentLayout({
   children,
