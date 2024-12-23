@@ -5,7 +5,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import localizer from '@/app/helpers/localizer';
 import Cookies from 'js-cookie';
 import api from '@/utils/axiosInstance';
-import { ExamSuggestionPopup } from '@/app/components/ExamSuggestionPopup';
+import { ExamRequestPopup } from '@/app/components/ExamRequestPopup';
 
 type ExamType = 'Written' | 'Oral' | 'Project' | 'Practice';
 
@@ -124,13 +124,15 @@ const StudentLeaderCalendar: React.FC = () => {
           <strong className="font-semibold">Date:</strong>{' '}
           {event.start.toLocaleDateString()}
         </p>
-        <p className="mb-2">
-          <strong className="font-semibold">Time:</strong>{' '}
-          {`${event.start.toLocaleTimeString()} - ${event.end.toLocaleTimeString()}`}
-        </p>
+        {event.start && event.end && event.start.getHours() !== 0 && event.end.getHours() !== 0 && (
+          <p className="mb-2">
+            <strong className="font-semibold">Time:</strong>{' '}
+            {`${event.start.toLocaleTimeString()} - ${event.end.toLocaleTimeString()}`}
+          </p>
+        )}
         {event.details.notes && (
           <p className="mb-2">
-            <strong className="font-semibold">Notes:</strong> {event.details.notes}
+            <strong className="font-semibold">Details:</strong> {event.details.notes}
           </p>
         )}
       </>
@@ -142,19 +144,27 @@ const StudentLeaderCalendar: React.FC = () => {
     setShowSuggestionPopup(true);
   };
 
-  const handleSuggestionSubmit = async (data: {
-    professorId: string;
+  const handleExamRequest = async (data: {
+    courseId: string;
     date: Date;
     notes: string;
   }) => {
     try {
-      // Replace with your API endpoint
-      await api.post('/api/exam-suggestions', data);
-      // Optionally refresh the calendar
+      const groupId = Cookies.get('groupId');
+      const formattedDate = data.date.toLocaleDateString('en-CA');
+      
+      const examRequest = {
+        courseId: data.courseId,
+        groupId: groupId,
+        examDate: formattedDate,
+        details: data.notes
+      };
+
+      await api.post('/event/exam-request', examRequest);
       fetchEvents();
     } catch (error) {
-      console.error('Failed to submit suggestion:', error);
-      // Handle error
+      console.error('Failed to submit exam request:', error);
+      setError('Failed to submit exam request');
     }
   };
 
@@ -255,11 +265,11 @@ const StudentLeaderCalendar: React.FC = () => {
       )}
 
       {selectedDate && (
-        <ExamSuggestionPopup
+        <ExamRequestPopup
           isOpen={showSuggestionPopup}
           onClose={() => setShowSuggestionPopup(false)}
           selectedDate={selectedDate}
-          onSubmit={handleSuggestionSubmit}
+          onSubmit={handleExamRequest}
         />
       )}
     </div>

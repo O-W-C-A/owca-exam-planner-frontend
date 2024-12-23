@@ -1,50 +1,73 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Select from 'react-select';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
+import api from '@/utils/axiosInstance';
+import Cookies from 'js-cookie';
 
-type Professor = {
+type Course = {
   value: string;
   label: string;
+  professorId: string;
 };
 
-type ExamSuggestionProps = {
+type ExamRequestProps = {
   isOpen: boolean;
   onClose: () => void;
   selectedDate: Date;
   onSubmit: (data: {
-    professorId: string;
+    courseId: string;
     date: Date;
     notes: string;
   }) => void;
 };
 
-export function ExamSuggestionPopup({ isOpen, onClose, selectedDate, onSubmit }: ExamSuggestionProps) {
-  const [selectedProfessor, setSelectedProfessor] = useState<Professor | null>(null);
+export function ExamRequestPopup({ isOpen, onClose, selectedDate, onSubmit }: ExamRequestProps) {
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Mock professors data - replace with API call
-  const professors: Professor[] = [
-    { value: '1', label: 'Prof. Smith' },
-    { value: '2', label: 'Prof. Johnson' },
-    // Add more professors
-  ];
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setIsLoading(true);
+        const groupId = Cookies.get('groupId');
+        const response = await api.get(`/course/group/${groupId}`);
+        if (response.status === 200) {
+          const courseOptions = response.data.map((course: any) => ({
+            value: course.id,
+            label: course.name,
+            professorId: course.professorId
+          }));
+          setCourses(courseOptions);
+        }
+      } catch (error) {
+        setError('Failed to load courses');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (isOpen) {
+      fetchCourses();
+    }
+  }, [isOpen]);
 
   const handleSubmit = () => {
-    if (!selectedProfessor) {
-      setError('Please select a professor');
+    if (!selectedCourse) {
+      setError('Please select a course');
       return;
     }
 
     onSubmit({
-      professorId: selectedProfessor.value,
+      courseId: selectedCourse.value,
       date: selectedDate,
       notes: notes.trim(),
     });
 
-    // Reset form
-    setSelectedProfessor(null);
+    setSelectedCourse(null);
     setNotes('');
     setError(null);
     onClose();
@@ -56,7 +79,7 @@ export function ExamSuggestionPopup({ isOpen, onClose, selectedDate, onSubmit }:
     <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Suggest Exam Date</CardTitle>
+          <CardTitle>Request Exam Date</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -74,26 +97,27 @@ export function ExamSuggestionPopup({ isOpen, onClose, selectedDate, onSubmit }:
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Professor
+                Course
               </label>
               <Select
-                value={selectedProfessor}
-                onChange={setSelectedProfessor}
-                options={professors}
+                value={selectedCourse}
+                onChange={setSelectedCourse}
+                options={courses}
                 className="w-full"
-                placeholder="Select a professor..."
+                placeholder="Select a course..."
+                isLoading={isLoading}
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Notes
+                Details
               </label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 className="w-full px-3 py-2 border rounded-md min-h-[100px]"
-                placeholder="Add any additional notes..."
+                placeholder="Add any additional details..."
               />
             </div>
 
