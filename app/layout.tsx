@@ -1,14 +1,12 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
+import { UserProvider } from '@/contexts/UserContext';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'block',
+  preload: true,
+  weight: ['400', '500', '600', '700'],
 });
 
 const globalMetadata = {
@@ -19,17 +17,16 @@ const globalMetadata = {
 export const metadata = globalMetadata;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const pageTitle = globalMetadata.title;
   return (
-    <html lang="en">
+    <html lang="en" className={inter.className}>
       <head>
-        {/* Favicon */}
         <link rel="icon" href="/usv_logo.ico" />
-        {/* Page Title */}
-        <title>{pageTitle}</title>
+        <title>{globalMetadata.title}</title>
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-blue-50`}>
-        {children}
+      <body className="antialiased bg-blue-50">
+        <UserProvider>
+          {children}
+        </UserProvider>
       </body>
     </html>
   );
