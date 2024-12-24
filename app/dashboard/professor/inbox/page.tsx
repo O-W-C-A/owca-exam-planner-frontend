@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import Select from 'react-select';
 import api from '@/utils/axiosInstance';
 import Cookies from 'js-cookie';
+import { RejectPopup } from '@/app/components/RejectPopup';
+import { ApprovePopup } from '@/app/components/ApprovePopup';
 
 type Course = {
   value: string;  // course id
@@ -14,13 +16,12 @@ type ExamRequest = {
   courseId: string;
   courseName: string;
   groupName: string;
-  date: string;
-  start?: string;
-  end?: string;
-  details: {
-    group: string;
+  examDate: string;
+  timeStart?: string;
+  timeEnd?: string;
+  details?: {
     notes?: string;
-  };
+  } | string;
   status: 'Pending' | 'Approved' | 'Rejected';
 };
 
@@ -31,6 +32,9 @@ export default function ProfessorInbox() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [showRejectPopup, setShowRejectPopup] = useState(false);
+  const [showApprovePopup, setShowApprovePopup] = useState(false);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
 
   // Fetch professor's courses
   useEffect(() => {
@@ -56,33 +60,39 @@ export default function ProfessorInbox() {
     fetchCourses();
   }, []);
 
-  // Fetch exam requests based on selected course
-  useEffect(() => {
-    const fetchExamRequests = async () => {
-      try {
-        setIsLoading(true);
-        const userId = Cookies.get('userId');
-        const endpoint = selectedCourse && selectedCourse.value !== 'all'
-          ? `/event/exam-request/professor/${userId}/course/${selectedCourse.value}`
-          : `/event/exam-request/professor/${userId}`;
-        
-        const response = await api.get(endpoint);
-        if (response.status === 200) {
-          setExamRequests(response.data);
-        }
-      } catch (error) {
-        setError('Failed to load exam requests');
-      } finally {
-        setIsLoading(false);
+  const fetchExamRequests = async () => {
+    try {
+      setIsLoading(true);
+      const userId = Cookies.get('userId');
+      const endpoint = selectedCourse && selectedCourse.value !== 'all'
+        ? `/event/exam-request/professor/${userId}/course/${selectedCourse.value}`
+        : `/event/exam-request/professor/${userId}`;
+      
+      const response = await api.get(endpoint);
+      if (response.status === 200) {
+        setExamRequests(response.data);
       }
-    };
+    } catch (error) {
+      setError('Failed to load exam requests');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchExamRequests();
   }, [selectedCourse]);
 
-  const handleConfirm = async (eventId: string) => {
+  const handleConfirm = async (data: {
+    timeStart: string;
+    timeEnd: string;
+    assistantId?: string;
+    type: string;
+    notes?: string;
+  }) => {
     try {
-      const response = await api.put(`/event/exam-request/${eventId}/approve`);
+      if (!selectedRequestId) return;
+      const response = await api.put(`/event/exam-request/${selectedRequestId}/approve`, data);
       if (response.status === 200) {
         setToastMessage('Exam request approved successfully');
         fetchExamRequests();
@@ -92,9 +102,10 @@ export default function ProfessorInbox() {
     }
   };
 
-  const handleReject = async (eventId: string) => {
+  const handleReject = async (reason: string) => {
     try {
-      const response = await api.put(`/event/exam-request/${eventId}/reject`);
+      if (!selectedRequestId) return;
+      const response = await api.put(`/event/exam-request/${selectedRequestId}/reject`, { reason });
       if (response.status === 200) {
         setToastMessage('Exam request rejected successfully');
         fetchExamRequests();
@@ -133,18 +144,18 @@ export default function ProfessorInbox() {
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-4">
             {examRequests.map((request) => (
               <div
                 key={request.id}
-                className="bg-white p-3 rounded-lg shadow hover:shadow-md transition-shadow"
+                className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
               >
-                <div className="flex justify-between items-center mb-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-medium">{request.courseName}</h3>
-                    <span className="text-sm text-gray-500">• {request.details?.group}</span>
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className="font-medium text-lg">{request.courseName}</h3>
+                    <p className="text-gray-600">Group: {request.groupName}</p>
                   </div>
-                  <span className={`px-2 py-0.5 rounded text-xs ${
+                  <span className={`px-2 py-1 rounded text-sm ${
                     request.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
                     request.status === 'Approved' ? 'bg-green-100 text-green-800' :
                     'bg-red-100 text-red-800'
@@ -153,34 +164,43 @@ export default function ProfessorInbox() {
                   </span>
                 </div>
                 <div className="text-sm text-gray-600">
+                  <p>Group: {request.groupName}</p>
                   <p>Exam Date: {
                     (() => {
-                      const baseDate = new Date(request.date);
-                      if (request.start) {
-                        const [hours, minutes] = request.start.split(':');
-                        const date = new Date(baseDate);
-                        date.setHours(parseInt(hours), parseInt(minutes));
-                        return date.toLocaleString();
+                      const baseDate = new Date(request.examDate);
+                      if (request.timeStart) {
+                        const [hours, minutes] = request.timeStart.split(':');
+                        return new Date(baseDate.setHours(parseInt(hours), parseInt(minutes))).toLocaleString();
                       }
                       return baseDate.toLocaleDateString();
                     })()
                   }</p>
-                  {request.details?.notes && (
-                    <p className="truncate">Details: {request.details.notes}</p>
+                  {request.details && (
+                    <p>Details: {
+                      typeof request.details === 'string' 
+                        ? request.details 
+                        : request.details.notes
+                    }</p>
                   )}
                 </div>
-                <div className="flex justify-end mt-2 space-x-2">
+                <div className="flex justify-end mt-4 space-x-2">
                   {request.status === 'Pending' && (
                     <>
                       <button
-                        onClick={() => handleConfirm(request.id)}
-                        className="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600 transition"
+                        onClick={() => {
+                          setSelectedRequestId(request.id);
+                          setShowApprovePopup(true);
+                        }}
+                        className="bg-green-500 text-white px-3 py-1.5 rounded hover:bg-green-600 transition text-sm"
                       >
                         Approve
                       </button>
                       <button
-                        onClick={() => handleReject(request.id)}
-                        className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 transition"
+                        onClick={() => {
+                          setSelectedRequestId(request.id);
+                          setShowRejectPopup(true);
+                        }}
+                        className="bg-red-500 text-white px-3 py-1.5 rounded hover:bg-red-600 transition text-sm"
                       >
                         Reject
                       </button>
@@ -192,6 +212,23 @@ export default function ProfessorInbox() {
           </div>
         )}
       </div>
+
+      {showRejectPopup && (
+        <RejectPopup
+          isOpen={showRejectPopup}
+          onClose={() => setShowRejectPopup(false)}
+          onReject={handleReject}
+        />
+      )}
+
+      {showApprovePopup && selectedRequestId && (
+        <ApprovePopup
+          isOpen={showApprovePopup}
+          onClose={() => setShowApprovePopup(false)}
+          courseId={examRequests.find(r => r.id === selectedRequestId)?.courseId || ''}
+          onApprove={handleConfirm}
+        />
+      )}
     </div>
   );
 }

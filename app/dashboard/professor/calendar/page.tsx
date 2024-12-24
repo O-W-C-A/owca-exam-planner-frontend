@@ -7,6 +7,8 @@ import Cookies from 'js-cookie';
 import api from '@/utils/axiosInstance';
 import Select from 'react-select';
 import { Toast } from '@/app/components/Toast';
+import { RejectPopup } from '@/app/components/RejectPopup';
+import { ApprovePopup } from '@/app/components/ApprovePopup';
 import { useUser } from '@/contexts/UserContext';
 
 type Course = {
@@ -44,6 +46,8 @@ const ProfessorCalendar: React.FC = () => {
   const { user } = useUser();
   const [isClient, setIsClient] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [showRejectPopup, setShowRejectPopup] = useState(false);
+  const [showApprovePopup, setShowApprovePopup] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [events, setEvents] = useState<Event[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -55,12 +59,12 @@ const ProfessorCalendar: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    setIsClient(true);
     if (user) {
-      setIsClient(true);
       fetchEvents();
       fetchCourses();
     }
-  }, [user]);
+  }, [user, selectedCourse]);
 
   const fetchEvents = async () => {
     try {
@@ -138,11 +142,19 @@ const ProfessorCalendar: React.FC = () => {
     }
   };
 
-  const handleConfirm = async (eventId: string) => {
+  const handleConfirm = async (data: {
+    timeStart: string;
+    timeEnd: string;
+    assistantId?: string;
+    type: string;
+    notes?: string;
+  }) => {
     try {
-      const response = await api.put(`/event/exam-request/${eventId}/approve`);
+      if (!selectedEvent) return;
+      const response = await api.put(`/event/exam-request/${selectedEvent.id}/approve`, data);
       if (response.status === 200) {
         setToastMessage('Exam request approved successfully');
+        setShowApprovePopup(false);
         setIsModalOpen(false);
         fetchEvents();
       }
@@ -151,11 +163,13 @@ const ProfessorCalendar: React.FC = () => {
     }
   };
 
-  const handleReject = async (eventId: string) => {
+  const handleReject = async (reason: string) => {
     try {
-      const response = await api.put(`/event/exam-request/${eventId}/reject`);
+      if (!selectedEvent) return;
+      const response = await api.put(`/event/exam-request/${selectedEvent.id}/reject`, { reason });
       if (response.status === 200) {
         setToastMessage('Exam request rejected successfully');
+        setShowRejectPopup(false);
         setIsModalOpen(false);
         fetchEvents();
       }
@@ -337,13 +351,19 @@ const ProfessorCalendar: React.FC = () => {
                 {selectedEvent.status === 'Pending' && (
                   <>
                     <button
-                      onClick={() => handleConfirm(selectedEvent.id)}
+                      onClick={() => {
+                        setShowApprovePopup(true);
+                        setIsModalOpen(false);
+                      }}
                       className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
                     >
                       Approve
                     </button>
                     <button
-                      onClick={() => handleReject(selectedEvent.id)}
+                      onClick={() => {
+                        setShowRejectPopup(true);
+                        setIsModalOpen(false);
+                      }}
                       className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
                     >
                       Reject
@@ -360,6 +380,23 @@ const ProfessorCalendar: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {showRejectPopup && (
+        <RejectPopup
+          isOpen={showRejectPopup}
+          onClose={() => setShowRejectPopup(false)}
+          onReject={handleReject}
+        />
+      )}
+
+      {showApprovePopup && selectedEvent && (
+        <ApprovePopup
+          isOpen={showApprovePopup}
+          onClose={() => setShowApprovePopup(false)}
+          courseId={selectedEvent.courseId}
+          onApprove={handleConfirm}
+        />
       )}
     </div>
   );
