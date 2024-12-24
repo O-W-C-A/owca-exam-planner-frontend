@@ -5,7 +5,6 @@ import Cookies from 'js-cookie';
 import api from '@/utils/axiosInstance';
 import LoginForm from './LoginForm';
 import { useRouter } from 'next/navigation';
-import { StudentAuthResponse, BaseAuthResponse } from '@/types/auth';
 
 export default function LoginPage() {
     const [formData, setFormData] = useState({
@@ -68,28 +67,27 @@ export default function LoginPage() {
             });
 
             const authData = res.data;
-            console.log('Auth data received:', authData); // Debug log
+            
+            // Determine the actual role for redirection
+            const actualRole = authData.role.toLowerCase() === 'student' && authData.isLeader === true 
+                ? 'studentleader' 
+                : authData.role.toLowerCase();
 
             // Store common data
             Cookies.set('authToken', authData.token, { path: '/' });
             Cookies.set('userId', String(authData.userId), { path: '/' });
+            Cookies.set('role', actualRole, { path: '/' });
 
-            // Handle student leader case - compare with boolean true
-            if (authData.role.toLowerCase() === 'student' && authData.isLeader === true) {
-                console.log('Setting studentleader role'); // Debug log
-                Cookies.set('role', 'studentleader', { path: '/' });
+            if (actualRole === 'studentleader') {
                 if (authData.groupId) {
                     Cookies.set('groupId', String(authData.groupId), { path: '/' });
                 }
                 if (authData.groupName) {
                     Cookies.set('groupName', authData.groupName, { path: '/' });
                 }
-            } else {
-                Cookies.set('role', authData.role.toLowerCase(), { path: '/' });
             }
 
-            const redirectPath = getRedirectPathFromRole(authData.role.toLowerCase());
-            console.log('Redirecting to:', redirectPath); // Debug log
+            const redirectPath = getRedirectPathFromRole(actualRole);
             router.push(redirectPath);
         } catch (err) {
             console.error('Login failed:', err);

@@ -6,20 +6,20 @@ import { cn } from '@/utils/cn';
 import { useState } from 'react';
 import SidebarTrigger from './SidebarTrigger';
 
-const studentNavItems = [
+const professorNavItems = [
   {
     title: 'Calendar',
-    href: '/dashboard/student/calendar',
+    href: '/dashboard/professor/calendar',
     icon: Calendar,
   },
   {
     title: 'Inbox',
-    href: '/dashboard/student/inbox',
+    href: '/dashboard/professor/inbox',
     icon: Inbox,
   }
 ];
 
-export function StudentSidebar() {
+export function ProfessorSidebar() {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(true);
 
@@ -32,7 +32,7 @@ export function StudentSidebar() {
         )}
       >
         <nav className="p-2 pt-4">
-          {studentNavItems.map((item) => (
+          {professorNavItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}

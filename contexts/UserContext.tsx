@@ -4,6 +4,7 @@ import Cookies from 'js-cookie';
 import api from '@/utils/axiosInstance';
 
 type User = {
+  id: string;
   firstname: string;
   lastname: string;
   email: string;
@@ -13,53 +14,47 @@ type User = {
 } | null;
 
 type UserContextType = {
-  user: User;
+  user: User | null;
+  fetchUser: () => Promise<void>;
   setUser: (user: User) => void;
   userRole: string;
   error?: string;
 };
 
-const UserContext = createContext<UserContextType | undefined>(undefined);
+export const UserContext = createContext<UserContextType>({
+  user: null,
+  fetchUser: async () => {},
+  setUser: () => {},
+  userRole: Cookies.get('role')?.toLowerCase() || 'student',
+});
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User>(null);
   const [error, setError] = useState<string>();
   const userRole = Cookies.get('role')?.toLowerCase() || 'student';
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const userId = Cookies.get('userId');
-        console.log('Fetching user data for ID:', userId);
-        
-        if (!userId) {
-          setError('No user ID found');
-          return;
-        }
-
-        const response = await api.get(`/users/${userId}`);
-        console.log('API Response:', response);
-
-        if (response.status === 200) {
-          setUser(response.data);
-        } else {
-          setError(`API returned status ${response.status}`);
-        }
-      } catch (error: any) {
-        console.error('Full error:', error);
-        setError(error.message || 'Failed to fetch user data');
-        if (error.response) {
-          console.error('Response data:', error.response.data);
-          console.error('Response status:', error.response.status);
-        }
+  const fetchUser = async () => {
+    try {
+      const userId = Cookies.get('userId');
+      if (!userId) {
+        setError('No user ID found');
+        return;
       }
-    };
+      const response = await api.get(`/users/${userId}`);
+      if (response.status === 200) {
+        setUser(response.data);
+      }
+    } catch (error: any) {
+      setError(error.message || 'Failed to fetch user data');
+    }
+  };
 
-    fetchUserData();
+  useEffect(() => {
+    fetchUser();
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, setUser, userRole, error }}>
+    <UserContext.Provider value={{ user, setUser, userRole, error, fetchUser }}>
       {children}
     </UserContext.Provider>
   );

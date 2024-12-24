@@ -5,31 +5,43 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import localizer from '@/app/helpers/localizer';
 import Cookies from 'js-cookie';
 import api from '@/utils/axiosInstance';
+import Select from 'react-select';
+import { Toast } from '@/app/components/Toast';
+import { useUser } from '@/contexts/UserContext';
+
+type Course = {
+  value: string;
+  label: string;
+};
 
 type ExamType = 'Written' | 'Oral' | 'Project' | 'Practice';
 
 type Event = {
   id: string;
-  title: string;          // Subject name
-  start: Date;           // Exam date and time
-  end: Date;             // Exam end time
+  title: string;
+  start: Date;
+  end: Date;
   isConfirmed: boolean;
-  details?: {            // Optional details (might be empty for unconfirmed exams)
+  details?: {
     professor: {
       firstName: string;
       lastName: string;
     };
-    assistant?: {        // Optional assistant
+    assistant?: {
       firstName: string;
       lastName: string;
-    };
-    room?: string;       // Optional room
-    type?: ExamType;     // Optional exam type
-    notes?: string;      // Optional notes
+    } | null;
+    group: string;
+    type: ExamType;
+    notes?: string;
   };
+  courseId: string;
+  groupName: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
 };
 
-const StudentCalendar: React.FC = () => {
+const ProfessorCalendar: React.FC = () => {
+  const { user } = useUser();
   const [isClient, setIsClient] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -37,48 +49,118 @@ const StudentCalendar: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<typeof Views[keyof typeof Views]>(Views.MONTH);
   const [date, setDate] = useState(new Date());
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    setIsClient(true);
-    fetchEvents();
-  }, []);
+    if (user) {
+      setIsClient(true);
+      fetchEvents();
+      fetchCourses();
+    }
+  }, [user]);
 
   const fetchEvents = async () => {
     try {
-      const userId = Cookies.get('userId');
-      const response = await api.get(`/events/student/${userId}`);
+      setIsLoading(true);
+      const userId = user?.id || Cookies.get('userId');
+      const endpoint = selectedCourse && selectedCourse.value !== 'all'
+        ? `/event/exam-request/professor/${userId}/course/${selectedCourse.value}`
+        : `/event/exam-request/professor/${userId}`;
+      
+      const response = await api.get(endpoint);
       if (response.status === 200) {
-        // Parse dates from the response
-        const parsedEvents = response.data.map((event: any) => ({
-          ...event,
-          start: new Date(event.start),
-          end: new Date(event.end)
-        }));
+        const parsedEvents = response.data.map((event: any) => {
+          // Create base date from the date field
+          const baseDate = new Date(event.date);
+          
+          // If start time exists, set it on the base date
+          let startDate = new Date(baseDate);
+          let endDate = new Date(baseDate);
+          
+          if (event.start) {
+            const [startHours, startMinutes] = event.start.split(':');
+            startDate.setHours(parseInt(startHours), parseInt(startMinutes));
+          }
+          
+          if (event.end) {
+            const [endHours, endMinutes] = event.end.split(':');
+            endDate.setHours(parseInt(endHours), parseInt(endMinutes));
+          }
+
+          return {
+            id: event.id,
+            title: event.title || 'Untitled Event',
+            start: startDate,
+            end: endDate,
+            isConfirmed: event.status === 'Approved',
+            details: {
+              professor: event.details.professor,
+              assistant: event.details.assistant,
+              group: event.details.group,
+              type: event.details.type || 'Written',
+              notes: event.details.notes || ''
+            },
+            courseId: event.id,
+            groupName: event.details.group,
+            status: event.status
+          };
+        });
+        
         setEvents(parsedEvents);
       }
     } catch (error) {
-      setError('Failed to load events');
-      setEvents([]);
+      console.error('Error fetching events:', error);
+      setToastMessage('Failed to load events');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleConfirm = async (): Promise<void> => {
-    if (selectedEvent) {
-      try {
-        await fetch(`/api/events/${selectedEvent.id}/confirm`, {
-          method: 'PUT'
-        });
-        
-        setSelectedEvent((prevEvent) => ({
-          ...prevEvent!,
-          isConfirmed: true,
-        }));
-        setIsModalOpen(false);
-        
-        fetchEvents();
-      } catch (error) {
-        setError('Failed to confirm event');
+  const fetchCourses = async () => {
+    try {
+      const userId = user?.id || Cookies.get('userId');
+      const response = await api.get(`/course/professor/${userId}`);
+      if (response.status === 200) {
+        const courseOptions = [
+          { value: 'all', label: 'All Courses' },
+          ...response.data.map((course: any) => ({
+            value: course.id,
+            label: course.name
+          }))
+        ];
+        setCourses(courseOptions);
       }
+    } catch (error) {
+      setToastMessage('Failed to load courses');
+    }
+  };
+
+  const handleConfirm = async (eventId: string) => {
+    try {
+      const response = await api.put(`/event/exam-request/${eventId}/approve`);
+      if (response.status === 200) {
+        setToastMessage('Exam request approved successfully');
+        setIsModalOpen(false);
+        fetchEvents();
+      }
+    } catch (error) {
+      setToastMessage('Failed to approve exam request');
+    }
+  };
+
+  const handleReject = async (eventId: string) => {
+    try {
+      const response = await api.put(`/event/exam-request/${eventId}/reject`);
+      if (response.status === 200) {
+        setToastMessage('Exam request rejected successfully');
+        setIsModalOpen(false);
+        fetchEvents();
+      }
+    } catch (error) {
+      setToastMessage('Failed to reject exam request');
     }
   };
 
@@ -90,7 +172,7 @@ const StudentCalendar: React.FC = () => {
     if (!event.details) {
       return (
         <div className="text-gray-500 italic">
-          Details will be available once the exam is confirmed
+          Details not available
         </div>
       );
     }
@@ -98,38 +180,39 @@ const StudentCalendar: React.FC = () => {
     return (
       <>
         <p className="mb-2">
-          <strong className="font-semibold">Professor:</strong>{' '}
-          {`${event.details.professor.firstName} ${event.details.professor.lastName}`}
+          <strong className="font-semibold">Course:</strong>{' '}
+          {event.title}
         </p>
-        {event.details.assistant && (
+        <p className="mb-2">
+          <strong className="font-semibold">Group:</strong>{' '}
+          {event.details.group}
+        </p>
+        {event.details.professor && (
           <p className="mb-2">
-            <strong className="font-semibold">Assistant:</strong>{' '}
-            {`${event.details.assistant.firstName} ${event.details.assistant.lastName}`}
-          </p>
-        )}
-        {event.details.room && (
-          <p className="mb-2">
-            <strong className="font-semibold">Room:</strong> {event.details.room}
-          </p>
-        )}
-        {event.details.type && (
-          <p className="mb-2">
-            <strong className="font-semibold">Type:</strong> {event.details.type}
+            <strong className="font-semibold">Professor:</strong>{' '}
+            {`${event.details.professor.firstName} ${event.details.professor.lastName}`}
           </p>
         )}
         <p className="mb-2">
           <strong className="font-semibold">Date:</strong>{' '}
           {event.start.toLocaleDateString()}
         </p>
-        <p className="mb-2">
-          <strong className="font-semibold">Time:</strong>{' '}
-          {`${event.start.toLocaleTimeString()} - ${event.end.toLocaleTimeString()}`}
-        </p>
         {event.details.notes && (
           <p className="mb-2">
-            <strong className="font-semibold">Notes:</strong> {event.details.notes}
+            <strong className="font-semibold">Details:</strong>{' '}
+            {event.details.notes}
           </p>
         )}
+        <p className="mb-2">
+          <strong className="font-semibold">Status:</strong>{' '}
+          <span className={`px-2 py-1 rounded text-sm ${
+            event.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+            event.status === 'Approved' ? 'bg-green-100 text-green-800' :
+            'bg-red-100 text-red-800'
+          }`}>
+            {event.status}
+          </span>
+        </p>
       </>
     );
   };
@@ -140,12 +223,44 @@ const StudentCalendar: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col">
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 flex-none">
-          {error}
-        </div>
+      <div>
+        <Select
+          value={selectedCourse}
+          onChange={setSelectedCourse}
+          options={courses}
+          className="w-64"
+          placeholder="All Courses"
+          isLoading={isLoading}
+          isClearable={false}
+          classNames={{
+            control: () => 'h-8 min-h-[32px] bg-white',
+            valueContainer: () => 'h-8',
+            input: () => 'h-8 m-0 p-0',
+            placeholder: () => 'leading-8',
+            singleValue: () => 'leading-8',
+            indicatorsContainer: () => 'h-8',
+            menu: () => 'bg-white shadow-lg border',
+            menuList: () => 'bg-white',
+            option: (state) => state.isFocused ? 'bg-gray-100' : 'bg-white'
+          }}
+          styles={{
+            menu: (base) => ({
+              ...base,
+              backgroundColor: 'white',
+              zIndex: 50
+            })
+          }}
+        />
+      </div>
+
+      {toastMessage && (
+        <Toast 
+          message={toastMessage} 
+          onClose={() => setToastMessage(null)} 
+        />
       )}
-      <div className="flex-1 min-h-0">
+
+      <div className="flex-1">
         <Calendar
           localizer={localizer}
           events={events}
@@ -176,7 +291,10 @@ const StudentCalendar: React.FC = () => {
           }}
           eventPropGetter={(event) => ({
             style: {
-              backgroundColor: event.isConfirmed ? 'green' : 'red',
+              backgroundColor: 
+                event.status === 'Approved' ? '#22c55e' :  // green-500
+                event.status === 'Rejected' ? '#ef4444' :  // red-500
+                '#eab308',                                 // yellow-500 for Pending
               color: 'white',
               borderRadius: '5px',
               border: 'none',
@@ -216,6 +334,22 @@ const StudentCalendar: React.FC = () => {
               {renderEventDetails(selectedEvent)}
 
               <div className="flex justify-end space-x-4 mt-6">
+                {selectedEvent.status === 'Pending' && (
+                  <>
+                    <button
+                      onClick={() => handleConfirm(selectedEvent.id)}
+                      className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => handleReject(selectedEvent.id)}
+                      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+                    >
+                      Reject
+                    </button>
+                  </>
+                )}
                 <button
                   onClick={() => setIsModalOpen(false)}
                   className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
@@ -231,4 +365,4 @@ const StudentCalendar: React.FC = () => {
   );
 };
 
-export default StudentCalendar;
+export default ProfessorCalendar;

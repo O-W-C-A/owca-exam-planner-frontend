@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { clearAuthData } from './tokenUtils';
-
+import { ROUTES } from '@/utils/routes';
 // Use the URL passed via the environment variable
 const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -24,7 +24,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       clearAuthData();
-      window.location.href = '/login';
+      window.location.href = ROUTES.LOGIN;
     }
     return Promise.reject(error);
   }
