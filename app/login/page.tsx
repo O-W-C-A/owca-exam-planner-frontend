@@ -5,8 +5,10 @@ import Cookies from 'js-cookie';
 import api from '@/utils/axiosInstance';
 import LoginForm from './LoginForm';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@/contexts/UserContext';
 
 export default function LoginPage() {
+    const { fetchUser } = useUser();
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -59,21 +61,21 @@ export default function LoginPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+        setIsLoading(true);
 
         try {
+            // 1. Login
             const res = await api.post('/auth/login', {
                 email: formData.email,
                 passwordHash: formData.password,
             });
 
             const authData = res.data;
-            
-            // Determine the actual role for redirection
             const actualRole = authData.role.toLowerCase() === 'student' && authData.isLeader === true 
                 ? 'studentleader' 
                 : authData.role.toLowerCase();
 
-            // Store common data
+            // 2. Set cookies
             Cookies.set('authToken', authData.token, { path: '/' });
             Cookies.set('userId', String(authData.userId), { path: '/' });
             Cookies.set('role', actualRole, { path: '/' });
@@ -87,11 +89,16 @@ export default function LoginPage() {
                 }
             }
 
+            // 3. Wait for user data to be loaded
+            await fetchUser();
+
+            // 4. Only redirect after user data is loaded
             const redirectPath = getRedirectPathFromRole(actualRole);
             router.push(redirectPath);
         } catch (err) {
             console.error('Login failed:', err);
             setError('Login failed. Please check your credentials and try again.');
+            setIsLoading(false);
         }
     };
 
