@@ -1,5 +1,5 @@
 'use client';
-import { Calendar, Settings, Users, MessageSquare, Inbox } from 'lucide-react';
+import { Calendar, Inbox } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/utils/cn';

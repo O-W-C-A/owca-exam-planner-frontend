@@ -1,6 +1,6 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import { Calendar, Views } from 'react-big-calendar';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Calendar, Views, DateLocalizer } from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import localizer from '@/app/helpers/localizer';
 import Cookies from 'js-cookie';
@@ -12,8 +12,8 @@ import { ApprovePopup } from '@/app/components/ApprovePopup';
 import { useUser } from '@/contexts/UserContext';
 
 type Course = {
-  value: string;
-  label: string;
+  id: string;
+  name: string;
 };
 
 type ExamType = 'Written' | 'Oral' | 'Project' | 'Practice';
@@ -21,8 +21,9 @@ type ExamType = 'Written' | 'Oral' | 'Project' | 'Practice';
 type Event = {
   id: string;
   title: string;
-  start: Date;
-  end: Date;
+  date: Date;
+  start: string;
+  end: string;
   isConfirmed: boolean;
   details?: {
     professor: {
@@ -50,7 +51,6 @@ const ProfessorCalendar: React.FC = () => {
   const [showApprovePopup, setShowApprovePopup] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [events, setEvents] = useState<Event[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<typeof Views[keyof typeof Views]>(Views.MONTH);
   const [date, setDate] = useState(new Date());
   const [courses, setCourses] = useState<Course[]>([]);
@@ -58,31 +58,23 @@ const ProfessorCalendar: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    setIsClient(true);
-    if (user) {
-      fetchEvents();
-      fetchCourses();
-    }
-  }, [user, selectedCourse]);
-
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       setIsLoading(true);
       const userId = user?.id || Cookies.get('userId');
-      const endpoint = selectedCourse && selectedCourse.value !== 'all'
-        ? `/event/exam-request/professor/${userId}/course/${selectedCourse.value}`
+      const endpoint = selectedCourse && selectedCourse.id  !== 'all'
+        ? `/event/exam-request/professor/${userId}/course/${selectedCourse.id}`
         : `/event/exam-request/professor/${userId}`;
       
       const response = await api.get(endpoint);
       if (response.status === 200) {
-        const parsedEvents = response.data.map((event: any) => {
+        const parsedEvents = response.data.map((event: Event) => {
           // Create base date from the date field
           const baseDate = new Date(event.date);
           
           // If start time exists, set it on the base date
-          let startDate = new Date(baseDate);
-          let endDate = new Date(baseDate);
+          const startDate = new Date(baseDate);
+          const endDate = new Date(baseDate);
           
           if (event.start) {
             const [startHours, startMinutes] = event.start.split(':');
@@ -101,14 +93,14 @@ const ProfessorCalendar: React.FC = () => {
             end: endDate,
             isConfirmed: event.status === 'Approved',
             details: {
-              professor: event.details.professor,
-              assistant: event.details.assistant,
-              group: event.details.group,
-              type: event.details.type || 'Written',
-              notes: event.details.notes || ''
+              professor: event.details?.professor,
+              assistant: event.details?.assistant,
+              group: event.details?.group,
+              type: event.details?.type || 'Written',
+              notes: event.details?.notes || ''
             },
             courseId: event.id,
-            groupName: event.details.group,
+            groupName: event.details?.group,
             status: event.status
           };
         });
@@ -121,26 +113,35 @@ const ProfessorCalendar: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, selectedCourse]);
 
-  const fetchCourses = async () => {
+  const fetchCourses = useCallback(async () => {
     try {
       const userId = user?.id || Cookies.get('userId');
       const response = await api.get(`/course/professor/${userId}`);
       if (response.status === 200) {
         const courseOptions = [
           { value: 'all', label: 'All Courses' },
-          ...response.data.map((course: any) => ({
+          ...response.data.map((course: Course) => ({
             value: course.id,
             label: course.name
           }))
         ];
         setCourses(courseOptions);
       }
-    } catch (error) {
-      setToastMessage('Failed to load courses');
+    } catch (error: unknown) {
+      console.log('Failed to load courses', error);
+      setToastMessage(error instanceof Error ? error.message : 'Failed to load courses');
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    setIsClient(true);
+    if (user) {
+      fetchEvents();
+      fetchCourses();
+    }
+  }, [user, selectedCourse, fetchEvents, fetchCourses]);
 
   const handleConfirm = async (data: {
     timeStart: string;
@@ -158,8 +159,9 @@ const ProfessorCalendar: React.FC = () => {
         setIsModalOpen(false);
         fetchEvents();
       }
-    } catch (error) {
-      setToastMessage('Failed to approve exam request');
+    } catch (error: unknown) {
+      console.log('Failed to approve exam request', error);
+      setToastMessage(error instanceof Error ? error.message : 'Failed to approve exam request');
     }
   };
 
@@ -173,8 +175,9 @@ const ProfessorCalendar: React.FC = () => {
         setIsModalOpen(false);
         fetchEvents();
       }
-    } catch (error) {
-      setToastMessage('Failed to reject exam request');
+    } catch (error: unknown) {
+      console.log('Failed to reject exam request', error);
+      setToastMessage(error instanceof Error ? error.message : 'Failed to reject exam request');
     }
   };
 
@@ -209,7 +212,7 @@ const ProfessorCalendar: React.FC = () => {
         )}
         <p className="mb-2">
           <strong className="font-semibold">Date:</strong>{' '}
-          {event.start.toLocaleDateString()}
+          {new Date(event.start).toLocaleDateString()}
         </p>
         {event.details.notes && (
           <p className="mb-2">
@@ -291,12 +294,12 @@ const ProfessorCalendar: React.FC = () => {
           formats={{
             eventTimeRangeFormat: () => '',
             eventTimeRangeEndFormat: () => '',
-            timeGutterFormat: (date, culture, localizer: any) =>
-              localizer.format(date, 'HH:mm', culture),
-            dayFormat: (date, culture, localizer) =>
-              localizer.format(date, 'EEE', culture),
-            dateFormat: (date, culture, localizer) =>
-              localizer.format(date, 'd', culture),
+            timeGutterFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
+              localizer?.format(date, 'HH:mm', culture || 'en-GB') || '',
+            dayFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
+              localizer?.format(date, 'EEE', culture || 'en-GB') || '',
+            dateFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
+              localizer?.format(date, 'd', culture || 'en-GB') || '',
           }}
           titleAccessor={formatEventTitle}
           onSelectEvent={(event) => {

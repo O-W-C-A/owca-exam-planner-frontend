@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Calendar, Views } from 'react-big-calendar';
+import { Calendar, Views, DateLocalizer } from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import localizer from '@/app/helpers/localizer';
 import Cookies from 'js-cookie';
@@ -49,36 +49,17 @@ const StudentCalendar: React.FC = () => {
       const response = await api.get(`/events/student/${userId}`);
       if (response.status === 200) {
         // Parse dates from the response
-        const parsedEvents = response.data.map((event: any) => ({
+        const parsedEvents = response.data.map((event: Event) => ({
           ...event,
           start: new Date(event.start),
           end: new Date(event.end)
         }));
         setEvents(parsedEvents);
       }
-    } catch (error) {
-      setError('Failed to load events');
+    } catch (error: unknown) {
+      console.log('Failed to load events', error);
+      setError(error instanceof Error ? error.message : 'Failed to load events');
       setEvents([]);
-    }
-  };
-
-  const handleConfirm = async (): Promise<void> => {
-    if (selectedEvent) {
-      try {
-        await fetch(`/api/events/${selectedEvent.id}/confirm`, {
-          method: 'PUT'
-        });
-        
-        setSelectedEvent((prevEvent) => ({
-          ...prevEvent!,
-          isConfirmed: true,
-        }));
-        setIsModalOpen(false);
-        
-        fetchEvents();
-      } catch (error) {
-        setError('Failed to confirm event');
-      }
     }
   };
 
@@ -162,12 +143,12 @@ const StudentCalendar: React.FC = () => {
           formats={{
             eventTimeRangeFormat: () => '',
             eventTimeRangeEndFormat: () => '',
-            timeGutterFormat: (date, culture, localizer: any) =>
-              localizer.format(date, 'HH:mm', culture),
-            dayFormat: (date, culture, localizer) =>
-              localizer.format(date, 'EEE', culture),
-            dateFormat: (date, culture, localizer) =>
-              localizer.format(date, 'd', culture),
+            timeGutterFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
+              localizer?.format(date, 'HH:mm', culture || 'en-GB') || '',
+            dayFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
+              localizer?.format(date, 'EEE', culture || 'en-GB') || '',
+            dateFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
+              localizer?.format(date, 'd', culture || 'en-GB') || '',
           }}
           titleAccessor={formatEventTitle}
           onSelectEvent={(event) => {

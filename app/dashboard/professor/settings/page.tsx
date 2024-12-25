@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import api from '@/utils/axiosInstance';
-import { Toast } from '@/app/components/Toast';
 import Cookies from 'js-cookie';
 
 type ProfessorDetails = {
@@ -19,7 +18,6 @@ export default function ProfessorSettings() {
   const { user } = useUser();
   const [details, setDetails] = useState<ProfessorDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProfessorDetails = async () => {
@@ -41,9 +39,8 @@ export default function ProfessorSettings() {
             title: data.title || ''
           });
         }
-      } catch (error) {
-        console.error('Error fetching professor details:', error);
-        setToastMessage('Failed to load professor details');
+      } catch (error: unknown) {
+        console.error(error instanceof Error ? error.message : 'Error fetching professor details');
       } finally {
         setIsLoading(false);
       }
@@ -53,18 +50,6 @@ export default function ProfessorSettings() {
       fetchProfessorDetails();
     }
   }, [user]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const response = await api.put(`/users/professor/${user?.id}`, details);
-      if (response.status === 200) {
-        setToastMessage('Settings updated successfully');
-      }
-    } catch (error) {
-      setToastMessage('Failed to update settings');
-    }
-  };
 
   if (isLoading) {
     return <div>Loading...</div>;

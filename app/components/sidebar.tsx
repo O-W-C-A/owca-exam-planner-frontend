@@ -2,7 +2,11 @@ import React from 'react';
 import { useSidebar } from '@/app/components/SidebarContext';
 import { Sheet, SheetContent } from '@/app/components/sheet'; // assuming these components are imported correctly
 
-const Sidebar: React.FC = ({ children }) => {
+interface SidebarProps {
+  children: React.ReactNode;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ children }) => {
   const { isMobile, openMobile, setOpenMobile, state } = useSidebar();
 
   if (isMobile) {

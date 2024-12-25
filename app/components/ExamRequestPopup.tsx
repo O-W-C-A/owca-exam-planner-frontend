@@ -6,8 +6,8 @@ import api from '@/utils/axiosInstance';
 import Cookies from 'js-cookie';
 
 type Course = {
-  value: string;
-  label: string;
+  id: string;
+  name: string;
   professorId: string;
 };
 
@@ -36,15 +36,16 @@ export function ExamRequestPopup({ isOpen, onClose, selectedDate, onSubmit }: Ex
         const groupId = Cookies.get('groupId');
         const response = await api.get(`/course/group/${groupId}`);
         if (response.status === 200) {
-          const courseOptions = response.data.map((course: any) => ({
+          const courseOptions = response.data.map((course: Course) => ({
             value: course.id,
             label: course.name,
             professorId: course.professorId
           }));
           setCourses(courseOptions);
         }
-      } catch (error) {
-        setError('Failed to load courses');
+      } catch (error: unknown) {
+        console.log('Failed to load courses', error);
+        setError(error instanceof Error ? error.message : 'Failed to load courses');
       } finally {
         setIsLoading(false);
       }
@@ -62,7 +63,7 @@ export function ExamRequestPopup({ isOpen, onClose, selectedDate, onSubmit }: Ex
     }
 
     onSubmit({
-      courseId: selectedCourse.value,
+      courseId: selectedCourse.id,
       date: selectedDate,
       notes: notes.trim(),
     });

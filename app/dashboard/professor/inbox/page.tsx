@@ -1,14 +1,15 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Select from 'react-select';
 import api from '@/utils/axiosInstance';
 import Cookies from 'js-cookie';
 import { RejectPopup } from '@/app/components/RejectPopup';
 import { ApprovePopup } from '@/app/components/ApprovePopup';
+import { Toast } from '@/app/components/Toast';
 
 type Course = {
-  value: string;  // course id
-  label: string;  // course name
+  id: string;
+  name: string;
 };
 
 type ExamRequest = {
@@ -45,43 +46,45 @@ export default function ProfessorInbox() {
         if (response.status === 200) {
           const courseOptions = [
             { value: 'all', label: 'All Courses' },
-            ...response.data.map((course: any) => ({
+            ...response.data.map((course: Course) => ({
               value: course.id,
               label: course.name
             }))
           ];
           setCourses(courseOptions);
         }
-      } catch (error) {
-        setError('Failed to load courses');
+      } catch (error: unknown) {
+        console.log('Failed to load courses', error);
+        setError(error instanceof Error ? error.message : 'Failed to load courses');
       }
     };
 
     fetchCourses();
   }, []);
 
-  const fetchExamRequests = async () => {
+  const fetchExamRequests = useCallback(async () => {
     try {
       setIsLoading(true);
       const userId = Cookies.get('userId');
-      const endpoint = selectedCourse && selectedCourse.value !== 'all'
-        ? `/event/exam-request/professor/${userId}/course/${selectedCourse.value}`
+      const endpoint = selectedCourse && selectedCourse.id !== 'all'
+        ? `/event/exam-request/professor/${userId}/course/${selectedCourse.id}`
         : `/event/exam-request/professor/${userId}`;
       
       const response = await api.get(endpoint);
       if (response.status === 200) {
         setExamRequests(response.data);
       }
-    } catch (error) {
-      setError('Failed to load exam requests');
+    } catch (error: unknown) {
+      console.log('Failed to load exam requests', error);
+      setError(error instanceof Error ? error.message : 'Failed to load exam requests');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedCourse]);
 
   useEffect(() => {
     fetchExamRequests();
-  }, [selectedCourse]);
+  }, [fetchExamRequests]);
 
   const handleConfirm = async (data: {
     timeStart: string;
@@ -97,8 +100,9 @@ export default function ProfessorInbox() {
         setToastMessage('Exam request approved successfully');
         fetchExamRequests();
       }
-    } catch (error) {
-      setToastMessage('Failed to approve exam request');
+    } catch (error: unknown) {
+      console.log('Failed to approve exam request', error);
+      setToastMessage(error instanceof Error ? error.message : 'Failed to approve exam request');
     }
   };
 
@@ -110,13 +114,21 @@ export default function ProfessorInbox() {
         setToastMessage('Exam request rejected successfully');
         fetchExamRequests();
       }
-    } catch (error) {
-      setToastMessage('Failed to reject exam request');
+    } catch (error: unknown) {
+      console.log('Failed to reject exam request', error);
+      setToastMessage(error instanceof Error ? error.message : 'Failed to reject exam request');
     }
   };
 
   return (
     <div className="h-full flex flex-col p-6">
+      {toastMessage && (
+        <Toast 
+          message={toastMessage} 
+          onClose={() => setToastMessage(null)} 
+        />
+      )}
+      
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Filter by Course
