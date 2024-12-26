@@ -120,7 +120,7 @@ const StudentLeaderCalendar: React.FC = () => {
           <strong className="font-semibold">Date:</strong>{' '}
           {new Date(event.date).toLocaleDateString()}
         </p>
-        {event.start && event.end && event.start.getHours() !== 0 && event.end.getHours() !== 0 && (
+        {event.start && event.end && new Date(event.start).getHours() !== 0 && new Date(event.end).getHours() !== 0 && (
           <p className="mb-2">
             <strong className="font-semibold">Time:</strong>{' '}
             {`${new Date(event.start).toLocaleTimeString()} - ${new Date(event.end).toLocaleTimeString()}`}
@@ -141,11 +141,13 @@ const StudentLeaderCalendar: React.FC = () => {
   };
 
   const handleExamRequest = async (data: {
-    courseId: string;
     date: Date;
     notes: string;
+    courseId?: string;
   }) => {
     try {
+      if (!data.courseId) return;
+      
       const groupId = Cookies.get('groupId');
       const formattedDate = data.date.toLocaleDateString('en-CA');
       
