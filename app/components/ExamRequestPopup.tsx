@@ -1,74 +1,46 @@
 'use client';
-import { useState, useEffect } from 'react';
-import Select from 'react-select';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
-import api from '@/utils/axiosInstance';
-import Cookies from 'js-cookie';
-
-type Course = {
-  id: string;
-  name: string;
-  professorId: string;
-};
 
 type ExamRequestProps = {
   isOpen: boolean;
   onClose: () => void;
   selectedDate: Date;
   onSubmit: (data: {
-    courseId: string;
     date: Date;
     notes: string;
   }) => void;
+  initialNotes?: string;
+  isUpdate?: boolean;
+  courseName?: string; // Add courseName for display only
 };
 
-export function ExamRequestPopup({ isOpen, onClose, selectedDate, onSubmit }: ExamRequestProps) {
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [notes, setNotes] = useState('');
+export function ExamRequestPopup({ 
+  isOpen, 
+  onClose, 
+  selectedDate, 
+  onSubmit,
+  initialNotes = '',
+  isUpdate = false,
+  courseName = ''
+}: ExamRequestProps) {
+  const [date, setDate] = useState(() => {
+    const d = new Date(selectedDate);
+    return isNaN(d.getTime()) ? new Date() : d;
+  });
+  const [notes, setNotes] = useState(initialNotes);
   const [error, setError] = useState<string | null>(null);
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        setIsLoading(true);
-        const groupId = Cookies.get('groupId');
-        const response = await api.get(`/course/group/${groupId}`);
-        if (response.status === 200) {
-          const courseOptions = response.data.map((course: Course) => ({
-            value: course.id,
-            label: course.name,
-            professorId: course.professorId
-          }));
-          setCourses(courseOptions);
-        }
-      } catch (error: unknown) {
-        console.log('Failed to load courses', error);
-        setError(error instanceof Error ? error.message : 'Failed to load courses');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (isOpen) {
-      fetchCourses();
-    }
-  }, [isOpen]);
+  const getDateValue = (date: Date) => {
+    return isNaN(date.getTime()) ? '' : date.toISOString().split('T')[0];
+  };
 
   const handleSubmit = () => {
-    if (!selectedCourse) {
-      setError('Please select a course');
-      return;
-    }
-
     onSubmit({
-      courseId: selectedCourse.id,
-      date: selectedDate,
+      date,
       notes: notes.trim(),
     });
 
-    setSelectedCourse(null);
     setNotes('');
     setError(null);
     onClose();
@@ -80,33 +52,40 @@ export function ExamRequestPopup({ isOpen, onClose, selectedDate, onSubmit }: Ex
     <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Request Exam Date</CardTitle>
+          <CardTitle>{isUpdate ? 'Update Exam Request' : 'Request Exam Date'}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Selected Date
-              </label>
-              <input
-                type="text"
-                value={selectedDate.toLocaleDateString()}
-                className="w-full px-3 py-2 border rounded-md bg-gray-50"
-                disabled
-              />
-            </div>
+            {isUpdate && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Course
+                </label>
+                <input
+                  type="text"
+                  value={courseName}
+                  className="w-full px-3 py-2 border rounded-md bg-gray-50"
+                  disabled
+                />
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Course
+                Date
               </label>
-              <Select
-                value={selectedCourse}
-                onChange={setSelectedCourse}
-                options={courses}
-                className="w-full"
-                placeholder="Select a course..."
-                isLoading={isLoading}
+              <input
+                type="date"
+                value={getDateValue(date)}
+                onChange={(e) => {
+                  const newDate = e.target.value ? new Date(e.target.value) : new Date();
+                  setDate(newDate);
+                }}
+                className="w-full px-3 py-2 border rounded-md [&::-webkit-calendar-picker-indicator]:bg-white [&::-webkit-calendar-picker-indicator]:dark:bg-white [&::-webkit-calendar-picker-indicator]:p-1 [&::-webkit-calendar-picker-indicator]:rounded [&::-webkit-clear-button]:hidden"
+                min={new Date().toISOString().split('T')[0]}
+                style={{
+                  colorScheme: 'light'
+                }}
               />
             </div>
 
@@ -137,7 +116,7 @@ export function ExamRequestPopup({ isOpen, onClose, selectedDate, onSubmit }: Ex
                 onClick={handleSubmit}
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
               >
-                Submit
+                {isUpdate ? 'Update' : 'Submit'}
               </button>
             </div>
           </div>

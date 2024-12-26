@@ -7,26 +7,25 @@ import Cookies from 'js-cookie';
 import api from '@/utils/axiosInstance';
 import { ExamRequestPopup } from '@/app/components/ExamRequestPopup';
 
-type ExamType = 'Written' | 'Oral' | 'Project' | 'Practice';
-
 type Event = {
   id: string;
-  title: string;         // Subject name
-  start: Date;           // Exam date and time
-  end: Date;             // Exam end time
-  isConfirmed: boolean;
-  details?: {            // Optional details (might be empty for unconfirmed exams)
+  title: string;
+  date: string;
+  start: string | null;
+  end: string | null;
+  status: 'Pending' | 'Approved' | 'Rejected';
+  details: {
     professor: {
       firstName: string;
       lastName: string;
     };
-    assistant?: {        // Optional assistant
+    assistant: {
       firstName: string;
       lastName: string;
-    };
-    room?: string;       // Optional room
-    type?: ExamType;     // Optional exam type
-    notes?: string;      // Optional notes
+    } | null;
+    group: string;
+    type: string | null;
+    notes: string | null;
   };
 };
 
@@ -51,12 +50,33 @@ const StudentLeaderCalendar: React.FC = () => {
       const userId = Cookies.get('userId');
       const response = await api.get(`/events/student/${userId}`);
       if (response.status === 200) {
-        // Parse dates from the response
-        const parsedEvents = response.data.map((event: Event) => ({
-          ...event,
-          start: new Date(event.start),
-          end: new Date(event.end)
-        }));
+        const parsedEvents = response.data.map((event: Event) => {
+          const eventDate = new Date(event.date);
+          
+          // Create start date
+          const startDate = new Date(eventDate);
+          if (event.start) {
+            const [hours, minutes] = event.start.split(':');
+            startDate.setHours(parseInt(hours), parseInt(minutes));
+          }
+
+          // Create end date
+          const endDate = new Date(eventDate);
+          if (event.end) {
+            const [hours, minutes] = event.end.split(':');
+            endDate.setHours(parseInt(hours), parseInt(minutes));
+          } else {
+            // If no end time, set it to 2 hours after start
+            endDate.setHours(startDate.getHours() + 2);
+          }
+
+          return {
+            ...event,
+            start: startDate,
+            end: endDate,
+            isConfirmed: event.status === 'Approved'
+          };
+        });
         setEvents(parsedEvents);
       }
     } catch (error) {
@@ -91,11 +111,6 @@ const StudentLeaderCalendar: React.FC = () => {
             {`${event.details.assistant.firstName} ${event.details.assistant.lastName}`}
           </p>
         )}
-        {event.details.room && (
-          <p className="mb-2">
-            <strong className="font-semibold">Room:</strong> {event.details.room}
-          </p>
-        )}
         {event.details.type && (
           <p className="mb-2">
             <strong className="font-semibold">Type:</strong> {event.details.type}
@@ -103,12 +118,12 @@ const StudentLeaderCalendar: React.FC = () => {
         )}
         <p className="mb-2">
           <strong className="font-semibold">Date:</strong>{' '}
-          {event.start.toLocaleDateString()}
+          {new Date(event.date).toLocaleDateString()}
         </p>
         {event.start && event.end && event.start.getHours() !== 0 && event.end.getHours() !== 0 && (
           <p className="mb-2">
             <strong className="font-semibold">Time:</strong>{' '}
-            {`${event.start.toLocaleTimeString()} - ${event.end.toLocaleTimeString()}`}
+            {`${new Date(event.start).toLocaleTimeString()} - ${new Date(event.end).toLocaleTimeString()}`}
           </p>
         )}
         {event.details.notes && (
@@ -191,7 +206,11 @@ const StudentLeaderCalendar: React.FC = () => {
           }}
           eventPropGetter={(event) => ({
             style: {
-              backgroundColor: event.isConfirmed ? 'green' : 'red',
+              backgroundColor: event.status === 'Approved' 
+                ? '#22c55e'  // green-500
+                : event.status === 'Rejected'
+                ? '#ef4444'  // red-500
+                : '#f59e0b', // amber-500 for Pending
               color: 'white',
               borderRadius: '5px',
               border: 'none',
@@ -221,11 +240,13 @@ const StudentLeaderCalendar: React.FC = () => {
               <h2 className="text-xl font-bold mb-4">
                 {selectedEvent.title}
                 <span className={`ml-2 px-2 py-1 text-sm rounded ${
-                  selectedEvent.isConfirmed 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
+                  selectedEvent.status === 'Approved'
+                    ? 'bg-green-100 text-green-800'
+                    : selectedEvent.status === 'Rejected'
+                    ? 'bg-red-100 text-red-800'
+                    : 'bg-amber-100 text-amber-800'
                 }`}>
-                  {selectedEvent.isConfirmed ? 'Confirmed' : 'Unconfirmed'}
+                  {selectedEvent.status}
                 </span>
               </h2>
               
