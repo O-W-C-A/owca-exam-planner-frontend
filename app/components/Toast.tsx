@@ -2,11 +2,11 @@
 import { useEffect } from 'react';
 import { X } from 'lucide-react';
 
-type ToastProps = {
+type ToastProps = Readonly<{
   message: string;
   type?: 'error' | 'success';
   onClose: () => void;
-};
+}>;
 
 export function Toast({ message, type = 'error', onClose }: ToastProps) {
   useEffect(() => {

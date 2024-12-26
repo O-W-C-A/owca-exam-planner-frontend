@@ -9,7 +9,7 @@ type Assistant = {
   lastName: string;
 };
 
-type ApprovePopupProps = {
+type ApprovePopupProps = Readonly<{
   isOpen: boolean;
   onClose: () => void;
   courseId: string;
@@ -20,7 +20,7 @@ type ApprovePopupProps = {
     type: string;
     notes?: string;
   }) => void;
-};
+}>;
 
 export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePopupProps) {
   const [timeStart, setTimeStart] = useState('');
@@ -78,10 +78,11 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label htmlFor="timeStart" className="block text-sm font-medium mb-1">
                 Start Time <span className="text-red-500">*</span>
               </label>
               <input
+                id="timeStart"
                 type="time"
                 value={timeStart}
                 onChange={(e) => setTimeStart(e.target.value)}
@@ -91,10 +92,11 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label htmlFor="timeEnd" className="block text-sm font-medium mb-1">
                 End Time <span className="text-red-500">*</span>
               </label>
               <input
+                id="timeEnd"
                 type="time"
                 value={timeEnd}
                 onChange={(e) => setTimeEnd(e.target.value)}
@@ -106,10 +108,11 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label htmlFor="assistant" className="block text-sm font-medium mb-1">
               Assistant <span className="text-red-500">*</span>
             </label>
             <Select
+              id="assistant"
               value={selectedAssistant}
               onChange={setSelectedAssistant}
               options={assistantOptions}
@@ -122,10 +125,11 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label htmlFor="examType" className="block text-sm font-medium mb-1">
               Exam Type <span className="text-red-500">*</span>
             </label>
             <Select
+              id="examType"
               value={examTypes.find(type => type.value === examType)}
               onChange={(option) => setExamType(option?.value || 'Written')}
               options={examTypes}
@@ -135,8 +139,9 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Additional Notes</label>
+            <label htmlFor="notes" className="block text-sm font-medium mb-1">Additional Notes</label>
             <textarea
+              id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Enter additional details..."

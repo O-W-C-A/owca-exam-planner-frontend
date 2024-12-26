@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
 
-type ExamRequestProps = {
+type ExamRequestProps = Readonly<{
   isOpen: boolean;
   onClose: () => void;
   selectedDate: Date;
@@ -12,8 +12,8 @@ type ExamRequestProps = {
   }) => void;
   initialNotes?: string;
   isUpdate?: boolean;
-  courseName?: string; // Add courseName for display only
-};
+  courseName?: string;
+}>;
 
 export function ExamRequestPopup({ 
   isOpen, 
@@ -58,10 +58,11 @@ export function ExamRequestPopup({
           <div className="space-y-4">
             {isUpdate && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="course" className="block text-sm font-medium text-gray-700 mb-1">
                   Course
                 </label>
                 <input
+                  id="course"
                   type="text"
                   value={courseName}
                   className="w-full px-3 py-2 border rounded-md bg-gray-50"
@@ -71,10 +72,11 @@ export function ExamRequestPopup({
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
                 Date
               </label>
               <input
+                id="date"
                 type="date"
                 value={getDateValue(date)}
                 onChange={(e) => {
@@ -90,10 +92,11 @@ export function ExamRequestPopup({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="details" className="block text-sm font-medium text-gray-700 mb-1">
                 Details
               </label>
               <textarea
+                id="details"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 className="w-full px-3 py-2 border rounded-md min-h-[100px]"

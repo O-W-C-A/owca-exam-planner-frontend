@@ -1,11 +1,11 @@
 'use client';
 import { useState } from 'react';
 
-type RejectPopupProps = {
+type RejectPopupProps = Readonly<{
   isOpen: boolean;
   onClose: () => void;
   onReject: (reason: string) => void;
-};
+}>;
 
 export function RejectPopup({ isOpen, onClose, onReject }: RejectPopupProps) {
   const [reason, setReason] = useState('');

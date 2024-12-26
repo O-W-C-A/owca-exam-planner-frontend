@@ -30,7 +30,7 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
   }, [isMobile]);
 
-  const state = (open ? 'expanded' : 'collapsed') as 'expanded' | 'collapsed';
+  const state = (open ? 'expanded' : 'collapsed');
 
   const value: SidebarContext = React.useMemo(
     () => ({
