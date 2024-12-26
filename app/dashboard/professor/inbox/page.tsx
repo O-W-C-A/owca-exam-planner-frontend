@@ -12,24 +12,33 @@ type Course = {
   name: string;
 };
 
-type ExamRequest = {
+type Event = {
   id: string;
-  courseId: string;
-  courseName: string;
-  groupName: string;
-  examDate: string;
-  timeStart?: string;
-  timeEnd?: string;
-  details?: {
-    notes?: string;
-  } | string;
+  title: string;
+  date: string;
+  start: string | null;
+  end: string | null;
   status: 'Pending' | 'Approved' | 'Rejected';
+  details: {
+    professor: {
+      firstName: string;
+      lastName: string;
+    };
+    assistant: {
+      firstName: string;
+      lastName: string;
+    } | null;
+    group: string;
+    type: string | null;
+    notes: string | null;
+  };
+  courseId: string;
 };
 
 export default function ProfessorInbox() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [examRequests, setExamRequests] = useState<ExamRequest[]>([]);
+  const [examRequests, setExamRequests] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -37,24 +46,17 @@ export default function ProfessorInbox() {
   const [showApprovePopup, setShowApprovePopup] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
 
-  // Fetch professor's courses
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         const userId = Cookies.get('userId');
         const response = await api.get(`/course/professor/${userId}`);
         if (response.status === 200) {
-          const courseOptions = [
-            { value: 'all', label: 'All Courses' },
-            ...response.data.map((course: Course) => ({
-              value: course.id,
-              label: course.name
-            }))
-          ];
+          const courseOptions = response.data;
           setCourses(courseOptions);
         }
       } catch (error: unknown) {
-        console.log('Failed to load courses', error);
+        console.error('Failed to load courses', error);
         setError(error instanceof Error ? error.message : 'Failed to load courses');
       }
     };
@@ -75,7 +77,7 @@ export default function ProfessorInbox() {
         setExamRequests(response.data);
       }
     } catch (error: unknown) {
-      console.log('Failed to load exam requests', error);
+      console.error('Failed to load exam requests', error);
       setError(error instanceof Error ? error.message : 'Failed to load exam requests');
     } finally {
       setIsLoading(false);
@@ -95,13 +97,13 @@ export default function ProfessorInbox() {
   }) => {
     try {
       if (!selectedRequestId) return;
-      const response = await api.put(`/event/exam-request/${selectedRequestId}/approve`, data);
+      const response = await api.patch(`/events/${selectedRequestId}/approve`, data);
       if (response.status === 200) {
         setToastMessage('Exam request approved successfully');
         fetchExamRequests();
       }
     } catch (error: unknown) {
-      console.log('Failed to approve exam request', error);
+      console.error('Failed to approve exam request', error);
       setToastMessage(error instanceof Error ? error.message : 'Failed to approve exam request');
     }
   };
@@ -115,9 +117,23 @@ export default function ProfessorInbox() {
         fetchExamRequests();
       }
     } catch (error: unknown) {
-      console.log('Failed to reject exam request', error);
+      console.error('Failed to reject exam request', error);
       setToastMessage(error instanceof Error ? error.message : 'Failed to reject exam request');
     }
+  };
+
+  const formatDateTime = (date: string, start: string | null, end: string | null) => {
+    const eventDate = new Date(date);
+    const dateStr = eventDate.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+
+    if (start && end) {
+      return `${dateStr} (${start} - ${end})`;
+    }
+    return dateStr;
   };
 
   return (
@@ -134,13 +150,13 @@ export default function ProfessorInbox() {
           Filter by Course
         </label>
         <Select
-          value={selectedCourse}
-          onChange={setSelectedCourse}
-          options={courses}
+          value={selectedCourse ? { value: selectedCourse.id, label: selectedCourse.name } : null}
+          onChange={(option) => setSelectedCourse(option ? { id: option.value, name: option.label } : null)}
+          options={courses.map(course => ({ value: course.id, label: course.name }))}
           className="w-64"
           placeholder="Select a course..."
           isLoading={isLoading}
-          isClearable={false}
+          isClearable
         />
       </div>
 
@@ -164,8 +180,8 @@ export default function ProfessorInbox() {
               >
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <h3 className="font-medium text-lg">{request.courseName}</h3>
-                    <p className="text-gray-600">Group: {request.groupName}</p>
+                    <h3 className="font-medium text-lg">{request.title}</h3>
+                    <p className="text-gray-600">Group: {request.details.group}</p>
                   </div>
                   <span className={`px-2 py-1 rounded text-sm ${
                     request.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
@@ -176,49 +192,38 @@ export default function ProfessorInbox() {
                   </span>
                 </div>
                 <div className="text-sm text-gray-600">
-                  <p>Group: {request.groupName}</p>
-                  <p>Exam Date: {
-                    (() => {
-                      const baseDate = new Date(request.examDate);
-                      if (request.timeStart) {
-                        const [hours, minutes] = request.timeStart.split(':');
-                        return new Date(baseDate.setHours(parseInt(hours), parseInt(minutes))).toLocaleString();
-                      }
-                      return baseDate.toLocaleDateString();
-                    })()
-                  }</p>
-                  {request.details && (
-                    <p>Details: {
-                      typeof request.details === 'string' 
-                        ? request.details 
-                        : request.details.notes
-                    }</p>
+                  <p className="mb-1">
+                    Date: {formatDateTime(request.date, request.start, request.end)}
+                  </p>
+                  {request.details.type && (
+                    <p className="mb-1">Type: {request.details.type}</p>
+                  )}
+                  {request.details.notes && (
+                    <p className="mb-1">Details: {request.details.notes}</p>
                   )}
                 </div>
-                <div className="flex justify-end mt-4 space-x-2">
-                  {request.status === 'Pending' && (
-                    <>
-                      <button
-                        onClick={() => {
-                          setSelectedRequestId(request.id);
-                          setShowApprovePopup(true);
-                        }}
-                        className="bg-green-500 text-white px-3 py-1.5 rounded hover:bg-green-600 transition text-sm"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSelectedRequestId(request.id);
-                          setShowRejectPopup(true);
-                        }}
-                        className="bg-red-500 text-white px-3 py-1.5 rounded hover:bg-red-600 transition text-sm"
-                      >
-                        Reject
-                      </button>
-                    </>
-                  )}
-                </div>
+                {request.status === 'Pending' && (
+                  <div className="flex justify-end mt-4 space-x-2">
+                    <button
+                      onClick={() => {
+                        setSelectedRequestId(request.id);
+                        setShowRejectPopup(true);
+                      }}
+                      className="bg-red-500 text-white px-3 py-1.5 rounded hover:bg-red-600 transition text-sm"
+                    >
+                      Reject
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedRequestId(request.id);
+                        setShowApprovePopup(true);
+                      }}
+                      className="bg-green-500 text-white px-3 py-1.5 rounded hover:bg-green-600 transition text-sm"
+                    >
+                      Approve
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
