@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import Cookies from 'js-cookie';
 import api from '@/utils/axiosInstance';
 import { User } from '@/types/user';
@@ -19,7 +19,7 @@ export const UserContext = createContext<UserContextType>({
   userRole: Cookies.get('role')?.toLowerCase() || 'student',
 });
 
-export function UserProvider({ children }: { children: React.ReactNode }) {
+export function UserProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   const [user, setUser] = useState<User>(null);
   const [error, setError] = useState<string>();
   const userRole = Cookies.get('role')?.toLowerCase() || 'student';
@@ -44,8 +44,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     fetchUser();
   }, []);
 
+  const contextValue = useMemo(() => ({
+    user,
+    setUser,
+    userRole,
+    error,
+    fetchUser
+  }), [user, userRole, error]);
+
   return (
-    <UserContext.Provider value={{ user, setUser, userRole, error, fetchUser }}>
+    <UserContext.Provider value={contextValue}>
       {children}
     </UserContext.Provider>
   );

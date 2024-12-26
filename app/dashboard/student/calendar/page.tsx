@@ -144,11 +144,11 @@ const StudentCalendar: React.FC = () => {
             eventTimeRangeFormat: () => '',
             eventTimeRangeEndFormat: () => '',
             timeGutterFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
-              localizer?.format(date, 'HH:mm', culture || 'en-GB') || '',
+              localizer?.format(date, 'HH:mm', culture ?? 'en-GB') ?? '',
             dayFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
-              localizer?.format(date, 'EEE', culture || 'en-GB') || '',
+              localizer?.format(date, 'EEE', culture ?? 'en-GB') ?? '',
             dateFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
-              localizer?.format(date, 'd', culture || 'en-GB') || '',
+              localizer?.format(date, 'd', culture ?? 'en-GB') ?? '',
           }}
           titleAccessor={formatEventTitle}
           onSelectEvent={(event) => {

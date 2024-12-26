@@ -3,9 +3,9 @@ import React, { useEffect, useState } from 'react';
 
 export default function StudentLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -17,10 +17,8 @@ export default function StudentLayout({
   }
 
   return (
-    <>
-      <main className="flex-1 p-6 flex flex-col min-h-0">
-        {children}
-      </main>
-    </>
+    <main className="flex-1 p-6 flex flex-col min-h-0">
+      {children}
+    </main>
   );
 } 

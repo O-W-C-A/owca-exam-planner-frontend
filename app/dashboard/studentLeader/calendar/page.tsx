@@ -141,6 +141,28 @@ const StudentLeaderCalendar: React.FC = () => {
     }
   };
 
+  const getEventBackgroundColor = (status: string) => {
+    switch (status) {
+      case 'Approved':
+        return '#22c55e';  // green-500
+      case 'Rejected':
+        return '#ef4444';  // red-500
+      default:
+        return '#f59e0b';  // amber-500 for Pending
+    }
+  };
+
+  const getStatusStyles = (status: string) => {
+    switch (status) {
+      case 'Approved':
+        return 'bg-green-100 text-green-800';
+      case 'Rejected':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-amber-100 text-amber-800';
+    }
+  };
+
   if (!isClient) {
     return <div>Loading calendar...</div>;
   }
@@ -170,11 +192,11 @@ const StudentLeaderCalendar: React.FC = () => {
             eventTimeRangeFormat: () => '',
             eventTimeRangeEndFormat: () => '',
             timeGutterFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
-              localizer?.format(date, 'HH:mm', culture || 'en-GB') || '',
+              localizer?.format(date, 'HH:mm', culture ?? 'en-GB') ?? '',
             dayFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
-              localizer?.format(date, 'EEE', culture || 'en-GB') || '',
+              localizer?.format(date, 'EEE', culture ?? 'en-GB') ?? '',
             dateFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
-              localizer?.format(date, 'd', culture || 'en-GB') || '',
+              localizer?.format(date, 'd', culture ?? 'en-GB') ?? '',
           }}
           titleAccessor={formatEventTitle}
           onSelectEvent={(event) => {
@@ -183,11 +205,7 @@ const StudentLeaderCalendar: React.FC = () => {
           }}
           eventPropGetter={(event) => ({
             style: {
-              backgroundColor: event.status === 'Approved' 
-                ? '#22c55e'  // green-500
-                : event.status === 'Rejected'
-                ? '#ef4444'  // red-500
-                : '#f59e0b', // amber-500 for Pending
+              backgroundColor: getEventBackgroundColor(event.status),
               color: 'white',
               borderRadius: '5px',
               border: 'none',
@@ -216,13 +234,7 @@ const StudentLeaderCalendar: React.FC = () => {
             <div className="relative">
               <h2 className="text-xl font-bold mb-4">
                 {selectedEvent.title}
-                <span className={`ml-2 px-2 py-1 text-sm rounded ${
-                  selectedEvent.status === 'Approved'
-                    ? 'bg-green-100 text-green-800'
-                    : selectedEvent.status === 'Rejected'
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-amber-100 text-amber-800'
-                }`}>
+                <span className={`ml-2 px-2 py-1 text-sm rounded ${getStatusStyles(selectedEvent.status)}`}>
                   {selectedEvent.status}
                 </span>
               </h2>

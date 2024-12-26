@@ -26,7 +26,8 @@ api.interceptors.response.use(
       clearAuthData();
       window.location.href = ROUTES.LOGIN;
     }
-    return Promise.reject(error);
+    // Ensure we're rejecting with an Error object
+    return Promise.reject(error instanceof Error ? error : new Error(error?.message || 'An error occurred'));
   }
 );
 

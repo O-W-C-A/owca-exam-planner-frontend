@@ -7,13 +7,13 @@ import { useState } from 'react';
 import SidebarTrigger from './SidebarTrigger';
 
 interface NavItem {
-  title: string;
-  href: string;
-  icon: LucideIcon;
+  readonly title: string;
+  readonly href: string;
+  readonly icon: LucideIcon;
 }
 
 interface SidebarProps {
-  navItems: NavItem[];
+  readonly navItems: NavItem[];
 }
 
 export function Sidebar({ navItems }: SidebarProps) {

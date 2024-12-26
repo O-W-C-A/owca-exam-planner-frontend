@@ -4,9 +4,9 @@ import { ProfessorSidebar } from '@/app/components/ProfessorSidebar';
 
 export default function ProfessorLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

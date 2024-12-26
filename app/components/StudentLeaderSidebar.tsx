@@ -1,5 +1,5 @@
 import { Calendar, Inbox } from 'lucide-react';
-import { Sidebar } from './Sidebar';
+import { Sidebar } from '@/app/components/sidebar';
 
 const studentLeaderNavItems = [
   {

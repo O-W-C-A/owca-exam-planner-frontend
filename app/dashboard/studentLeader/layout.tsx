@@ -4,9 +4,9 @@ import { StudentLeaderSidebar } from '@/app/components/StudentLeaderSidebar';
 
 export default function StudentLeaderLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

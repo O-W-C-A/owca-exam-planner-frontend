@@ -96,6 +96,17 @@ export default function StudentLeaderInbox() {
     return dateStr;
   };
 
+  const getStatusStyles = (status: string) => {
+    switch (status) {
+      case 'Pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Approved':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-red-100 text-red-800';
+    }
+  };
+
   return (
     <div className="h-full flex flex-col p-6">
       {toastMessage && (
@@ -130,11 +141,7 @@ export default function StudentLeaderInbox() {
                       Professor: {request.details.professor.firstName} {request.details.professor.lastName}
                     </p>
                   </div>
-                  <span className={`px-2 py-1 rounded text-sm ${
-                    request.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                    request.status === 'Approved' ? 'bg-green-100 text-green-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
+                  <span className={`px-2 py-1 rounded text-sm ${getStatusStyles(request.status)}`}>
                     {request.status}
                   </span>
                 </div>

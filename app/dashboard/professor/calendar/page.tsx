@@ -10,11 +10,7 @@ import { Toast } from '@/app/components/Toast';
 import { RejectPopup } from '@/app/components/RejectPopup';
 import { ApprovePopup } from '@/app/components/ApprovePopup';
 import { useUser } from '@/contexts/UserContext';
-
-type Course = {
-  id: string;
-  name: string;
-};
+import { Course, CourseOption } from '@/types/course';
 
 type ExamType = 'Written' | 'Oral' | 'Project' | 'Practice';
 
@@ -53,8 +49,8 @@ const ProfessorCalendar: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [view, setView] = useState<typeof Views[keyof typeof Views]>(Views.MONTH);
   const [date, setDate] = useState(new Date());
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [courses, setCourses] = useState<CourseOption[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<CourseOption | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -62,8 +58,8 @@ const ProfessorCalendar: React.FC = () => {
     try {
       setIsLoading(true);
       const userId = user?.id || Cookies.get('userId');
-      const endpoint = selectedCourse && selectedCourse.id  !== 'all'
-        ? `/event/exam-request/professor/${userId}/course/${selectedCourse.id}`
+      const endpoint = selectedCourse && selectedCourse.value !== 'all'
+        ? `/event/exam-request/professor/${userId}/course/${selectedCourse.value}`
         : `/event/exam-request/professor/${userId}`;
       
       const response = await api.get(endpoint);
@@ -88,7 +84,7 @@ const ProfessorCalendar: React.FC = () => {
 
           return {
             id: event.id,
-            title: event.title || 'Untitled Event',
+            title: event.title ?? 'Untitled Event',
             start: startDate,
             end: endDate,
             isConfirmed: event.status === 'Approved',
@@ -96,8 +92,8 @@ const ProfessorCalendar: React.FC = () => {
               professor: event.details?.professor,
               assistant: event.details?.assistant,
               group: event.details?.group,
-              type: event.details?.type || 'Written',
-              notes: event.details?.notes || ''
+              type: event.details?.type ?? 'Written',
+              notes: event.details?.notes ?? ''
             },
             courseId: event.id,
             groupName: event.details?.group,
@@ -222,16 +218,34 @@ const ProfessorCalendar: React.FC = () => {
         )}
         <p className="mb-2">
           <strong className="font-semibold">Status:</strong>{' '}
-          <span className={`px-2 py-1 rounded text-sm ${
-            event.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-            event.status === 'Approved' ? 'bg-green-100 text-green-800' :
-            'bg-red-100 text-red-800'
-          }`}>
+          <span className={`px-2 py-1 rounded text-sm ${getStatusStyles(event.status)}`}>
             {event.status}
           </span>
         </p>
       </>
     );
+  };
+
+  const getStatusStyles = (status: Event['status']) => {
+    switch (status) {
+      case 'Pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Approved':
+        return 'bg-green-100 text-green-800';
+      case 'Rejected':
+        return 'bg-red-100 text-red-800';
+    }
+  };
+
+  const getEventBackgroundColor = (status: Event['status']) => {
+    switch (status) {
+      case 'Approved':
+        return '#22c55e';  // green-500
+      case 'Rejected':
+        return '#ef4444';  // red-500
+      case 'Pending':
+        return '#eab308';  // yellow-500
+    }
   };
 
   if (!isClient) {
@@ -295,11 +309,11 @@ const ProfessorCalendar: React.FC = () => {
             eventTimeRangeFormat: () => '',
             eventTimeRangeEndFormat: () => '',
             timeGutterFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
-              localizer?.format(date, 'HH:mm', culture || 'en-GB') || '',
+              localizer?.format(date, 'HH:mm', culture ?? 'en-GB') ?? '',
             dayFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
-              localizer?.format(date, 'EEE', culture || 'en-GB') || '',
+              localizer?.format(date, 'EEE', culture ?? 'en-GB') ?? '',
             dateFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
-              localizer?.format(date, 'd', culture || 'en-GB') || '',
+              localizer?.format(date, 'd', culture ?? 'en-GB') ?? '',
           }}
           titleAccessor={formatEventTitle}
           onSelectEvent={(event) => {
@@ -308,10 +322,7 @@ const ProfessorCalendar: React.FC = () => {
           }}
           eventPropGetter={(event) => ({
             style: {
-              backgroundColor: 
-                event.status === 'Approved' ? '#22c55e' :  // green-500
-                event.status === 'Rejected' ? '#ef4444' :  // red-500
-                '#eab308',                                 // yellow-500 for Pending
+              backgroundColor: getEventBackgroundColor(event.status),
               color: 'white',
               borderRadius: '5px',
               border: 'none',
@@ -339,12 +350,8 @@ const ProfessorCalendar: React.FC = () => {
             <div className="relative">
               <h2 className="text-xl font-bold mb-4">
                 {selectedEvent.title}
-                <span className={`ml-2 px-2 py-1 text-sm rounded ${
-                  selectedEvent.isConfirmed 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {selectedEvent.isConfirmed ? 'Confirmed' : 'Unconfirmed'}
+                <span className={`ml-2 px-2 py-1 text-sm rounded ${getStatusStyles(selectedEvent.status)}`}>
+                  {selectedEvent.status}
                 </span>
               </h2>
               

@@ -7,7 +7,7 @@ import { RejectPopup } from '@/app/components/RejectPopup';
 import { ApprovePopup } from '@/app/components/ApprovePopup';
 import { Toast } from '@/app/components/Toast';
 import { Course } from '@/types/course';
-import { ExamRequest, ApproveFormData } from '@/types/examRequest';
+import { ExamRequest } from '@/types/examRequest';
 
 export default function ProfessorInbox() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -110,6 +110,17 @@ export default function ProfessorInbox() {
     return dateStr;
   };
 
+  const getStatusStyles = (status: string) => {
+    switch (status) {
+      case 'Pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Approved':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-red-100 text-red-800';
+    }
+  };
+
   return (
     <div className="h-full flex flex-col p-6">
       {toastMessage && (
@@ -120,10 +131,14 @@ export default function ProfessorInbox() {
       )}
       
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label 
+          htmlFor="course-select" 
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
           Filter by Course
         </label>
         <Select
+          id="course-select"
           value={selectedCourse ? { value: selectedCourse.id, label: selectedCourse.name } : null}
           onChange={(option) => setSelectedCourse(option ? { id: option.value, name: option.label } : null)}
           options={courses.map(course => ({ value: course.id, label: course.name }))}
@@ -157,11 +172,7 @@ export default function ProfessorInbox() {
                     <h3 className="font-medium text-lg">{request.title}</h3>
                     <p className="text-gray-600">Group: {request.details.group}</p>
                   </div>
-                  <span className={`px-2 py-1 rounded text-sm ${
-                    request.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                    request.status === 'Approved' ? 'bg-green-100 text-green-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
+                  <span className={`px-2 py-1 rounded text-sm ${getStatusStyles(request.status)}`}>
                     {request.status}
                   </span>
                 </div>
