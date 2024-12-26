@@ -2,16 +2,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import api from '@/utils/axiosInstance';
-
-type User = {
-  id: string;
-  firstname: string;
-  lastname: string;
-  email: string;
-  role?: string;
-  group?: string;
-  faculty?: string;
-} | null;
+import { User } from '@/types/user';
 
 type UserContextType = {
   user: User | null;
