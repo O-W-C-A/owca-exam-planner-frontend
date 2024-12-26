@@ -6,39 +6,13 @@ import Cookies from 'js-cookie';
 import { RejectPopup } from '@/app/components/RejectPopup';
 import { ApprovePopup } from '@/app/components/ApprovePopup';
 import { Toast } from '@/app/components/Toast';
-
-type Course = {
-  id: string;
-  name: string;
-};
-
-type Event = {
-  id: string;
-  title: string;
-  date: string;
-  start: string | null;
-  end: string | null;
-  status: 'Pending' | 'Approved' | 'Rejected';
-  details: {
-    professor: {
-      firstName: string;
-      lastName: string;
-    };
-    assistant: {
-      firstName: string;
-      lastName: string;
-    } | null;
-    group: string;
-    type: string | null;
-    notes: string | null;
-  };
-  courseId: string;
-};
+import { Course } from '@/types/course';
+import { ExamRequest, ApproveFormData } from '@/types/examRequest';
 
 export default function ProfessorInbox() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [examRequests, setExamRequests] = useState<Event[]>([]);
+  const [examRequests, setExamRequests] = useState<ExamRequest[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);

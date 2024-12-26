@@ -3,40 +3,41 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/card'
 import { User } from '@/types/user';
 
 interface PersonalInformationFormProps {
-  user: User | null;
-  role: 'student' | 'studentleader' | 'professor';
+  readonly user: User | null;
+  readonly role: 'student' | 'studentleader' | 'professor';
 }
 
-export function PersonalInformationForm({ user, role }: PersonalInformationFormProps) {
-  const InfoField = ({ label, value }: { label: string; value: string }) => (
-    <div>
-      <p className="text-sm font-medium text-gray-500 mb-1">{label}</p>
-      <p className="text-base bg-gray-50 p-2.5 rounded-md border border-gray-200">
-        {value || 'Not provided'}
-      </p>
-    </div>
-  );
+interface InfoFieldProps {
+  readonly label: string;
+  readonly value: string;
+}
 
+const InfoField = ({ label, value }: InfoFieldProps) => (
+  <div>
+    <p className="text-sm font-medium text-gray-500 mb-1">{label}</p>
+    <p className="text-base bg-gray-50 p-2.5 rounded-md border border-gray-200">
+      {value || 'Not provided'}
+    </p>
+  </div>
+);
+
+export function PersonalInformationForm({ user, role }: PersonalInformationFormProps) {
   const renderRoleSpecificFields = () => {
     switch (role) {
       case 'professor':
         return (
-          <>
             <InfoField 
               label="Department" 
-              value={user?.department || ''} 
+              value={user?.department ?? ''} 
             />
-          </>
         );
       case 'student':
       case 'studentleader':
         return (
-          <>
             <InfoField 
               label="Group" 
-              value={user?.group || ''} 
+              value={user?.group ?? ''} 
             />
-          </>
         );
     }
   };
@@ -51,24 +52,24 @@ export function PersonalInformationForm({ user, role }: PersonalInformationFormP
           <div className="grid grid-cols-2 gap-6">
             <InfoField 
               label="First Name" 
-              value={user?.firstname || ''} 
+              value={user?.firstname ?? ''} 
             />
             <InfoField 
               label="Last Name" 
-              value={user?.lastname || ''} 
+              value={user?.lastname ?? ''} 
             />
           </div>
 
           <InfoField 
             label="Email" 
-            value={user?.email || ''} 
+            value={user?.email ?? ''} 
           />
           
           {renderRoleSpecificFields()}
 
           <InfoField 
               label="Faculty" 
-              value={user?.faculty || ''} 
+              value={user?.faculty ?? ''} 
           />
         </div>
       </CardContent>

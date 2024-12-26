@@ -6,34 +6,13 @@ import localizer from '@/app/helpers/localizer';
 import Cookies from 'js-cookie';
 import api from '@/utils/axiosInstance';
 import { ExamRequestPopup } from '@/app/components/ExamRequestPopup';
-
-type Event = {
-  id: string;
-  title: string;
-  date: string;
-  start: string | null;
-  end: string | null;
-  status: 'Pending' | 'Approved' | 'Rejected';
-  details: {
-    professor: {
-      firstName: string;
-      lastName: string;
-    };
-    assistant: {
-      firstName: string;
-      lastName: string;
-    } | null;
-    group: string;
-    type: string | null;
-    notes: string | null;
-  };
-};
+import { ExamRequest, ExamRequestFormData } from '@/types/examRequest';
 
 const StudentLeaderCalendar: React.FC = () => {
   const [isClient, setIsClient] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<ExamRequest | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<ExamRequest[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<typeof Views[keyof typeof Views]>(Views.MONTH);
   const [date, setDate] = useState(new Date());
@@ -50,7 +29,7 @@ const StudentLeaderCalendar: React.FC = () => {
       const userId = Cookies.get('userId');
       const response = await api.get(`/events/student/${userId}`);
       if (response.status === 200) {
-        const parsedEvents = response.data.map((event: Event) => {
+        const parsedEvents = response.data.map((event: ExamRequest) => {
           const eventDate = new Date(event.date);
           
           // Create start date
@@ -86,11 +65,11 @@ const StudentLeaderCalendar: React.FC = () => {
     }
   };
 
-  const formatEventTitle = (event: Event) => {
+  const formatEventTitle = (event: ExamRequest) => {
     return event.title; // Show only subject name in calendar
   };
 
-  const renderEventDetails = (event: Event) => {
+  const renderEventDetails = (event: ExamRequest) => {
     if (!event.details) {
       return (
         <div className="text-gray-500 italic">
@@ -140,11 +119,7 @@ const StudentLeaderCalendar: React.FC = () => {
     setShowSuggestionPopup(true);
   };
 
-  const handleExamRequest = async (data: {
-    date: Date;
-    notes: string;
-    courseId?: string;
-  }) => {
+  const handleExamRequest = async (data: ExamRequestFormData) => {
     try {
       if (!data.courseId) return;
       
