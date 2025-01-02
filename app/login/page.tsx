@@ -1,72 +1,114 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
-import api from '@/utils/axiosInstance'; // Adjust if necessary to point to your C# API endpoint
+import api from '@/utils/axiosInstance';
 import LoginForm from './LoginForm';
-import { useRouter } from 'next/navigation'; // Import useRouter for navigation
+import { useRouter } from 'next/navigation';
+import { useUser } from '@/contexts/UserContext';
 
 export default function LoginPage() {
+    const { fetchUser } = useUser();
     const [formData, setFormData] = useState({
         email: '',
         password: '',
     });
     const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
+
+    const getRedirectPathFromRole = (role: string): string => {
+        switch (role) {
+            case 'student':
+                return '/dashboard/student/calendar';
+            case 'studentleader':
+                return '/dashboard/studentleader/calendar';
+            case 'professor':
+                return '/dashboard/professor/calendar';
+            case 'admin':
+                return '/dashboard/admin';
+            case 'secretary':
+                return '/dashboard/secretary';
+            default:
+                return '/dashboard';
+        }
+    };
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const token = Cookies.get('authToken');
+                const role = Cookies.get('role')?.toLowerCase();
+
+                if (token && role) {
+                    const redirectPath = getRedirectPathFromRole(role);
+                    router.push(redirectPath);
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        checkAuth();
+    }, [router]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const validateForm = () => {
-        const { email, password } = formData;
-        if (!email || !password) {
-            setError('Both fields are required.');
-            return false;
-        }
-        setError(null);
-        return true;
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (!validateForm()) return;
+        setError(null);
+        setIsLoading(true);
 
         try {
+            // 1. Login
             const res = await api.post('/auth/login', {
                 email: formData.email,
-                passwordHash: formData.password, // hash the password before sending
+                passwordHash: formData.password,
             });
 
-            const { token, role, userId } = res.data;
+            const authData = res.data;
+            const actualRole = authData.role.toLowerCase() === 'student' && authData.isLeader === true 
+                ? 'studentleader' 
+                : authData.role.toLowerCase();
 
-            // Store token and user data in cookies
-            Cookies.set('authToken', token, { path: '/' });
-            Cookies.set('role', role, { path: '/' });
-            Cookies.set('userId', userId, { path: '/' });
-            
-            // Cookies.set('userInfo', JSON.stringify({ role, userId }), { path: '/' });
+            // 2. Set cookies
+            Cookies.set('authToken', authData.token, { path: '/' });
+            Cookies.set('userId', String(authData.userId), { path: '/' });
+            Cookies.set('role', actualRole, { path: '/' });
 
-            // Redirect based on user role
-            switch (role) {
-                case 'Admin':
-                    router.push('/dashboard/admin');
-                    break;
-                case 'Professor':
-                    router.push('/dashboard/professor');
-                    break;
-                case 'Student':
-                    router.push('/dashboard/student');
-                    break;
-                default:
-                    setError('User with unsupported role');
+            if (actualRole === 'studentleader') {
+                if (authData.groupId) {
+                    Cookies.set('groupId', String(authData.groupId), { path: '/' });
+                }
+                if (authData.groupName) {
+                    Cookies.set('groupName', authData.groupName, { path: '/' });
+                }
             }
+
+            // 3. Wait for user data to be loaded
+            await fetchUser();
+
+            // 4. Only redirect after user data is loaded
+            const redirectPath = getRedirectPathFromRole(actualRole);
+            router.push(redirectPath);
         } catch (err) {
-            console.error('Login failed', err);
-            setError('Login failed, please try again.');
+            console.error('Login failed:', err);
+            setError('Login failed. Please check your credentials and try again.');
+            setIsLoading(false);
         }
     };
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+        );
+    }
 
     return (
         <LoginForm
