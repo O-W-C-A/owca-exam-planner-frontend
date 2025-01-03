@@ -1,11 +1,14 @@
-import Calendar from '@/app/components/calendarfull';
-import '@/app/globals.css';
-import React from 'react';
+'use client';
 
-const page = () => {
-    return (
-        <Calendar/>
-    );
-};
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default page;
+export default function ProfessorPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.push('/dashboard/professor/calendar');
+  }, [router]);
+
+  return null;
+}

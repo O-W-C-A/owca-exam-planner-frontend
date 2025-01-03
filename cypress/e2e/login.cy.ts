@@ -9,7 +9,7 @@ describe('Testare Formular de Login', () => {
       cy.get('button').contains('Submit').click();
       
       cy.url().should('include', '/dashboard');
-      cy.get('a').contains('Logout').click();
+      cy.get('button').contains('Logout').click();
       cy.get('button').contains('Yes').click();
       
     //   cy.contains('Welcome, John Doe').should('be.visible');

@@ -1,11 +1,14 @@
-import '@/app/globals.css';
-import React from 'react';
-import MyCalendar from '../calendar/page';
+'use client';
 
-const page = () => {
-    return (
-        <MyCalendar/>
-    );
-};
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default page;
+export default function StudentPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.push('/dashboard/student/calendar');
+  }, [router]);
+
+  return null;
+}
