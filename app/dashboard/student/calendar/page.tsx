@@ -33,6 +33,28 @@ type Event = {
     rooms : Room[];
   };
 };
+type ApiEvent = {
+  id: string;
+  title: string;
+  date: string;
+  start: string;
+  end: string;
+  status: string;
+  details: {
+    professor: {
+      firstName: string;
+      lastName: string;
+    };
+    assistant?: {
+      firstName: string;
+      lastName: string;
+    };
+    rooms: Room[];
+    group: string;
+    notes?: string;
+    type?: ExamType;
+  };
+};
 
 const StudentCalendar: React.FC = () => {
   const [isClient, setIsClient] = useState(false);
@@ -54,7 +76,7 @@ const StudentCalendar: React.FC = () => {
       const response = await api.get(`/events/student/${userId}`);
   
       if (response.status === 200) {
-        const parsedEvents: Event[] = response.data.map((event: any) => ({
+        const parsedEvents: Event[] = response.data.map((event: ApiEvent) => ({
           ...event,
           start: event.start ? new Date(`${event.date}T${event.start}`) : null,
           end: event.end ? new Date(`${event.date}T${event.end}`) : null,
