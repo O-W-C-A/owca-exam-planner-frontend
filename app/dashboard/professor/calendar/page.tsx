@@ -33,6 +33,7 @@ type Event = {
     group: string;
     type: ExamType;
     notes?: string;
+    rooms: any;
   };
   courseId: string;
   groupName: string;
@@ -81,7 +82,6 @@ const ProfessorCalendar: React.FC = () => {
             const [endHours, endMinutes] = event.end.split(':');
             endDate.setHours(parseInt(endHours), parseInt(endMinutes));
           }
-
           return {
             id: event.id,
             title: event.title ?? 'Untitled Event',
@@ -93,9 +93,10 @@ const ProfessorCalendar: React.FC = () => {
               assistant: event.details?.assistant,
               group: event.details?.group,
               type: event.details?.type ?? 'Written',
-              notes: event.details?.notes ?? ''
+              notes: event.details?.notes ?? '',
+              rooms: event.details?.rooms,
             },
-            courseId: event.id,
+            courseId: event.courseId,
             groupName: event.details?.group,
             status: event.status
           };
@@ -145,6 +146,7 @@ const ProfessorCalendar: React.FC = () => {
     assistantId?: string;
     type: string;
     notes?: string;
+    roomsId:number[];
   }) => {
     try {
       if (!selectedEvent) return;
@@ -214,6 +216,12 @@ const ProfessorCalendar: React.FC = () => {
           <p className="mb-2">
             <strong className="font-semibold">Details:</strong>{' '}
             {event.details.notes}
+          </p>
+        )}
+         {event.details?.rooms && event.details?.rooms.length > 0 && (
+          <p className="mb-2">
+            <strong className="font-semibold">Sali:</strong>{' '}
+            {event.details.rooms.map((room: { name: string; location: string }) => `${room.name} (${room.location})`).join(', ')}
           </p>
         )}
         <p className="mb-2">
@@ -356,7 +364,7 @@ const ProfessorCalendar: React.FC = () => {
               </h2>
               
               {renderEventDetails(selectedEvent)}
-
+              
               <div className="flex justify-end space-x-4 mt-6">
                 {selectedEvent.status === 'Pending' && (
                   <>

@@ -1,4 +1,3 @@
-'use client';
 import { useState, useEffect } from 'react';
 import Select from 'react-select';
 import api from '@/utils/axiosInstance';
@@ -7,6 +6,15 @@ type Assistant = {
   id: string;
   firstName: string;
   lastName: string;
+};
+
+type Room = {
+  roomID: number;
+  name: string;
+  location: string;
+  capacity: number;
+  description: string;
+  departmentName?: string;
 };
 
 type ApprovePopupProps = Readonly<{
@@ -19,6 +27,7 @@ type ApprovePopupProps = Readonly<{
     assistantId?: string;
     type: string;
     notes?: string;
+    roomsId: number[];
   }) => void;
 }>;
 
@@ -30,6 +39,8 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
   const [examType, setExamType] = useState<string>('Written');
   const [notes, setNotes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [selectedRooms, setSelectedRooms] = useState<{ value: number; label: string }[]>([]);
 
   useEffect(() => {
     const fetchAssistants = async () => {
@@ -46,14 +57,31 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
       }
     };
 
-    if (isOpen && courseId) {
+    const fetchRooms = async () => {
+      try {
+        const response = await api.get('/GetAllRooms');
+        if (response.status === 200) {
+          setRooms(response.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch rooms:', error);
+      }
+    };
+
+    if (isOpen) {
       fetchAssistants();
+      fetchRooms();
     }
   }, [isOpen, courseId]);
 
   const assistantOptions = assistants.map(assistant => ({
     value: assistant.id,
     label: `${assistant.firstName} ${assistant.lastName}`
+  }));
+
+  const roomOptions = rooms.map(room => ({
+    value: room.roomID,
+    label: `${room.name} (${room.location})`
   }));
 
   const examTypes = [
@@ -66,7 +94,8 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
   const isFormValid = timeStart && 
                      timeEnd && 
                      selectedAssistant && 
-                     examType;
+                     examType && 
+                     selectedRooms.length > 0;
 
   if (!isOpen) return null;
 
@@ -139,6 +168,22 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
           </div>
 
           <div>
+            <label htmlFor="rooms" className="block text-sm font-medium mb-1">
+              Rooms <span className="text-red-500">*</span>
+            </label>
+            <Select
+              id="rooms"
+              isMulti
+              value={selectedRooms}
+              onChange={(newValue) => setSelectedRooms(newValue as { value: number; label: string }[])}
+              options={roomOptions}
+              placeholder="Select rooms..."
+              className="w-full"
+              required
+            />
+          </div>
+
+          <div>
             <label htmlFor="notes" className="block text-sm font-medium mb-1">Additional Notes</label>
             <textarea
               id="notes"
@@ -164,7 +209,8 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
                 timeEnd,
                 assistantId: selectedAssistant?.value,
                 type: examType,
-                notes: notes.trim() || undefined
+                notes: notes.trim() || undefined,
+                roomsId: selectedRooms.map(room => room.value),
               });
               onClose();
             }}
@@ -177,4 +223,4 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
       </div>
     </div>
   );
-} 
+}
