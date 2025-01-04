@@ -43,17 +43,19 @@ const StudentCalendar: React.FC = () => {
     fetchEvents();
   }, []);
 
-  const fetchEvents = async () => {
+  const fetchEvents = async (): Promise<void> => {
     try {
       const userId = Cookies.get('userId');
       const response = await api.get(`/events/student/${userId}`);
+  
       if (response.status === 200) {
-        // Parse dates from the response
-        const parsedEvents = response.data.map((event: Event) => ({
+        const parsedEvents: Event[] = response.data.map((event: any) => ({
           ...event,
-          start: new Date(event.start),
-          end: new Date(event.end)
-        }));
+          start: event.start ? new Date(`${event.date}T${event.start}`) : null,
+          end: event.end ? new Date(`${event.date}T${event.end}`) : null,
+          isConfirmed: event.status === 'Approved', // Setăm isConfirmed pe baza statusului
+        })).filter((event: Event) => event.start && event.end); // Filtrăm evenimentele fără date valide
+      
         setEvents(parsedEvents);
       }
     } catch (error: unknown) {
@@ -62,6 +64,7 @@ const StudentCalendar: React.FC = () => {
       setEvents([]);
     }
   };
+  
 
   const formatEventTitle = (event: Event) => {
     return event.title; // Show only subject name in calendar
@@ -151,11 +154,11 @@ const StudentCalendar: React.FC = () => {
               localizer?.format(date, 'd', culture ?? 'en-GB') ?? '',
           }}
           titleAccessor={formatEventTitle}
-          onSelectEvent={(event) => {
+          onSelectEvent={(event: Event) => {
             setSelectedEvent(event);
             setIsModalOpen(true);
           }}
-          eventPropGetter={(event) => ({
+          eventPropGetter={(event: Event) => ({
             style: {
               backgroundColor: event.isConfirmed ? 'green' : 'red',
               color: 'white',
