@@ -26,6 +26,7 @@ type Event = {
     room?: string;       // Optional room
     type?: ExamType;     // Optional exam type
     notes?: string;      // Optional notes
+    rooms : any;
   };
 };
 
@@ -94,6 +95,12 @@ const StudentCalendar: React.FC = () => {
         {event.details.room && (
           <p className="mb-2">
             <strong className="font-semibold">Room:</strong> {event.details.room}
+          </p>
+        )}
+         {event.details?.rooms && event.details?.rooms.length > 0 && (
+          <p className="mb-2">
+            <strong className="font-semibold">Sali:</strong>{' '}
+            {event.details.rooms.map((room: { name: string; location: string }) => `${room.name} (${room.location})`).join(', ')}
           </p>
         )}
         {event.details.type && (
