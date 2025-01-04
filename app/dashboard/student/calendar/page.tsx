@@ -7,6 +7,10 @@ import Cookies from 'js-cookie';
 import api from '@/utils/axiosInstance';
 
 type ExamType = 'Written' | 'Oral' | 'Project' | 'Practice';
+type Room = {
+  name: string;
+  location: string;
+};
 
 type Event = {
   id: string;
@@ -26,7 +30,7 @@ type Event = {
     room?: string;       // Optional room
     type?: ExamType;     // Optional exam type
     notes?: string;      // Optional notes
-    rooms : any;
+    rooms : Room[];
   };
 };
 
@@ -97,12 +101,12 @@ const StudentCalendar: React.FC = () => {
             <strong className="font-semibold">Room:</strong> {event.details.room}
           </p>
         )}
-         {event.details?.rooms && event.details?.rooms.length > 0 && (
-          <p className="mb-2">
-            <strong className="font-semibold">Sali:</strong>{' '}
-            {event.details.rooms.map((room: { name: string; location: string }) => `${room.name} (${room.location})`).join(', ')}
-          </p>
-        )}
+       {event.details?.rooms && event.details?.rooms.length > 0 && (
+        <p className="mb-2">
+          <strong className="font-semibold">Sali:</strong>{' '}
+          {event.details.rooms.map((room: Room) => `${room.name} (${room.location})`).join(', ')}
+        </p>
+      )}
         {event.details.type && (
           <p className="mb-2">
             <strong className="font-semibold">Type:</strong> {event.details.type}

@@ -13,7 +13,10 @@ import { useUser } from '@/contexts/UserContext';
 import { Course, CourseOption } from '@/types/course';
 
 type ExamType = 'Written' | 'Oral' | 'Project' | 'Practice';
-
+type Room = {
+  name: string;
+  location: string;
+};
 type Event = {
   id: string;
   title: string;
@@ -33,7 +36,7 @@ type Event = {
     group: string;
     type: ExamType;
     notes?: string;
-    rooms: any;
+    rooms: Room[];
   };
   courseId: string;
   groupName: string;
