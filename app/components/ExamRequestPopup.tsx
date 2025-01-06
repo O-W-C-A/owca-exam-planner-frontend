@@ -54,7 +54,7 @@ export function ExamRequestPopup({
         });
 
         setCourses(response.data);
-      } catch (err) {
+      } catch {
         setError('Nu sunt cursuri.');
       }
     };
