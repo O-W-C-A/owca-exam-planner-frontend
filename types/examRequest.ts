@@ -17,6 +17,7 @@ export type ExamRequest = {
     group: string;
     type: string | null;
     notes: string | null;
+    rooms:Room[],
   };
   courseId: string;
 };
@@ -34,3 +35,8 @@ export type ApproveFormData = {
   type: string;
   notes?: string;
 }; 
+
+export type Room = {
+  name: string;
+  location: string;
+};
