@@ -6,7 +6,7 @@ import localizer from '@/app/helpers/localizer';
 import Cookies from 'js-cookie';
 import api from '@/utils/axiosInstance';
 import { ExamRequestPopup } from '@/app/components/ExamRequestPopup';
-import { ExamRequest, ExamRequestFormData } from '@/types/examRequest';
+import { ExamRequest, ExamRequestFormData,Room } from '@/types/examRequest';
 
 const StudentLeaderCalendar: React.FC = () => {
   const [isClient, setIsClient] = useState(false);
@@ -105,6 +105,12 @@ const StudentLeaderCalendar: React.FC = () => {
             {`${new Date(event.start).toLocaleTimeString()} - ${new Date(event.end).toLocaleTimeString()}`}
           </p>
         )}
+          {event.details?.rooms && event.details?.rooms.length > 0 && (
+        <p className="mb-2">
+          <strong className="font-semibold">Sali:</strong>{' '}
+          {event.details.rooms.map((room: Room) => `${room.name} (${room.location})`).join(', ')}
+        </p>
+      )}
         {event.details.notes && (
           <p className="mb-2">
             <strong className="font-semibold">Details:</strong> {event.details.notes}

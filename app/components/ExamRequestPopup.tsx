@@ -1,6 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
+import api from '@/utils/axiosInstance';
 
 type ExamRequestProps = Readonly<{
   isOpen: boolean;
@@ -9,10 +10,12 @@ type ExamRequestProps = Readonly<{
   onSubmit: (data: {
     date: Date;
     notes: string;
+    courseId: string;
   }) => void;
   initialNotes?: string;
   isUpdate?: boolean;
   courseName?: string;
+  examId?: string; // ID-ul examenului pentru actualizare
 }>;
 
 export function ExamRequestPopup({ 
@@ -22,7 +25,8 @@ export function ExamRequestPopup({
   onSubmit,
   initialNotes = '',
   isUpdate = false,
-  courseName = ''
+  courseName = '',
+  examId
 }: ExamRequestProps) {
   const [date, setDate] = useState(() => {
     const d = new Date(selectedDate);
@@ -30,20 +34,90 @@ export function ExamRequestPopup({
   });
   const [notes, setNotes] = useState(initialNotes);
   const [error, setError] = useState<string | null>(null);
+  const [courses, setCourses] = useState<{ id: string; title: string ;numeProfesor: string;prenumeProfesor:string }[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
+
+  useEffect(() => {
+    if (!isUpdate) {
+      // Fetch courses from API for non-update case
+      const fetchCourses = async () => {
+        try {
+          const userIdCookie = document.cookie
+            .split('; ')
+            .find((row) => row.startsWith('userId='))
+            ?.split('=')[1];
+
+          if (!userIdCookie) {
+            setError('User ID not found in cookies.');
+            return;
+          }
+
+          const response = await api.get(`/GetCoursersForExamByUserID`, {
+            params: { userId: userIdCookie },
+          });
+
+          setCourses(response.data);
+        } catch {
+          setError('Nu sunt cursuri.');
+        }
+      };
+
+      fetchCourses();
+    }
+  }, [isUpdate]);
 
   const getDateValue = (date: Date) => {
-    return isNaN(date.getTime()) ? '' : date.toISOString().split('T')[0];
+    const adjustedDate = new Date(date);
+    adjustedDate.setDate(adjustedDate.getDate() + 1); // Adaugă o zi
+    return isNaN(adjustedDate.getTime()) ? '' : adjustedDate.toISOString().split('T')[0];
+  };
+
+  const handleUpdate = async () => {
+    if (!examId) {
+      setError('Exam ID not provided for update.');
+      return;
+    }
+
+    try {
+      const response = await api.put(`/event/exam-request/${examId}/pending`, {
+        date: date.toISOString(),
+        reason: notes.trim(),
+      });
+
+      if (response.status === 200) {
+        onClose();
+        window.location.reload();
+      }
+    } catch {
+      setError('Failed to update exam request. Please try again.');
+    }
   };
 
   const handleSubmit = () => {
-    onSubmit({
-      date,
-      notes: notes.trim(),
-    });
+    if (isUpdate) {
+      handleUpdate();
+    } else {
+      if (!selectedCourseId) {
+        setError('Please select a course.');
+        return;
+      }
 
-    setNotes('');
-    setError(null);
+      onSubmit({
+        date,
+        notes: notes.trim(),
+        courseId: selectedCourseId,
+      });
+
+      setNotes('');
+      setError(null);
+      onClose();
+      window.location.reload();
+    }
+  };
+
+  const handleClose = () => {
     onClose();
+    window.location.reload();
   };
 
   if (!isOpen) return null;
@@ -70,7 +144,28 @@ export function ExamRequestPopup({
                 />
               </div>
             )}
-
+            {!isUpdate && (
+              <div>
+                <label htmlFor="course" className="block text-sm font-medium text-gray-700 mb-1">
+                  Course
+                </label>
+                <select
+                  id="course"
+                  value={selectedCourseId}
+                  onChange={(e) => setSelectedCourseId(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md bg-gray-50"
+                >
+                  <option value="" disabled>
+                    Select a course
+                  </option>
+                  {courses.map((course) => (
+                    <option key={course.id} value={course.id}>
+                      {course.title} {(course.numeProfesor + ' ' + course.prenumeProfesor)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div>
               <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
                 Date
@@ -104,13 +199,11 @@ export function ExamRequestPopup({
               />
             </div>
 
-            {error && (
-              <div className="text-red-500 text-sm">{error}</div>
-            )}
+            {error && <div className="text-red-500 text-sm">{error}</div>}
 
             <div className="flex justify-end space-x-3">
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="px-4 py-2 text-gray-700 border rounded-lg hover:bg-gray-50"
               >
                 Cancel
@@ -127,4 +220,4 @@ export function ExamRequestPopup({
       </Card>
     </div>
   );
-} 
+}
