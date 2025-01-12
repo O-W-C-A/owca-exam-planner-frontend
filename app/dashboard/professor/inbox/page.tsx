@@ -71,7 +71,7 @@ export default function ProfessorInbox() {
   }) => {
     try {
       if (!selectedRequestId) return;
-      const response = await api.patch(`/events/${selectedRequestId}/approve`, data);
+      const response = await api.put(`/event/exam-request/${selectedRequestId}/approve`, data);
       if (response.status === 200) {
         setToastMessage('Exam request approved successfully');
         fetchExamRequests();

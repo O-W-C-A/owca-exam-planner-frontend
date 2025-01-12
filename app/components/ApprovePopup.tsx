@@ -93,7 +93,6 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
 
   const isFormValid = timeStart && 
                      timeEnd && 
-                     selectedAssistant && 
                      examType && 
                      selectedRooms.length > 0;
 
@@ -149,7 +148,6 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
               isClearable={false}
               placeholder="Select assistant..."
               className="w-full"
-              required
             />
           </div>
 
@@ -207,7 +205,7 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
               onApprove({
                 timeStart,
                 timeEnd,
-                assistantId: selectedAssistant?.value,
+                assistantId: selectedAssistant?.value??"0",
                 type: examType,
                 notes: notes.trim() || undefined,
                 roomsId: selectedRooms.map(room => room.value),
