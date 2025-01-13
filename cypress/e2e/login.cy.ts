@@ -3,9 +3,9 @@ describe('Testare Formular de Login', () => {
       cy.visit('/login'); 
     });
   
-    it('Autentificare pentru Student - Students1@university.edu', () => {
-      cy.get('input[name="email"]').type('Students1@university.edu');
-      cy.get('input[name="password"]').type('hashedpassword1');
+    it('Autentificare pentru Student', () => {
+      cy.get('input[name="email"]').type('jane.smith@student.usm.ro');
+      cy.get('input[name="password"]').type('hashedpassword4');
       cy.get('button').contains('Submit').click();
       
       cy.url().should('include', '/dashboard');
