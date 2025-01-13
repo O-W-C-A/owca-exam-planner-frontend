@@ -15,6 +15,7 @@ type ExamRequestProps = Readonly<{
   initialNotes?: string;
   isUpdate?: boolean;
   courseName?: string;
+  examId?: string; // ID-ul examenului pentru actualizare
 }>;
 
 export function ExamRequestPopup({ 
@@ -24,7 +25,8 @@ export function ExamRequestPopup({
   onSubmit,
   initialNotes = '',
   isUpdate = false,
-  courseName = ''
+  courseName = '',
+  examId
 }: ExamRequestProps) {
   const [date, setDate] = useState(() => {
     const d = new Date(selectedDate);
@@ -36,63 +38,88 @@ export function ExamRequestPopup({
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
 
   useEffect(() => {
-    // Fetch courses from API
-    const fetchCourses = async () => {
-      try {
-        const userIdCookie = document.cookie
-          .split('; ')
-          .find((row) => row.startsWith('userId='))
-          ?.split('=')[1];
+    if (!isUpdate) {
+      // Fetch courses from API for non-update case
+      const fetchCourses = async () => {
+        try {
+          const userIdCookie = document.cookie
+            .split('; ')
+            .find((row) => row.startsWith('userId='))
+            ?.split('=')[1];
 
-        if (!userIdCookie) {
-          setError('User ID not found in cookies.');
-          return;
+          if (!userIdCookie) {
+            setError('User ID not found in cookies.');
+            return;
+          }
+
+          const response = await api.get(`/GetCoursersForExamByUserID`, {
+            params: { userId: userIdCookie },
+          });
+
+          setCourses(response.data);
+        } catch {
+          setError('Nu sunt cursuri.');
         }
+      };
 
-        const response = await api.get(`/GetCoursersForExamByUserID`, {
-          params: { userId: userIdCookie },
-        });
-
-        setCourses(response.data);
-      } catch {
-        setError('Nu sunt cursuri.');
-      }
-    };
-
-    fetchCourses();
-  }, []);
-
+      fetchCourses();
+    }
+  }, [isUpdate]);
 
   const getDateValue = (date: Date) => {
     const adjustedDate = new Date(date);
     adjustedDate.setDate(adjustedDate.getDate() + 1); // Adaugă o zi
     return isNaN(adjustedDate.getTime()) ? '' : adjustedDate.toISOString().split('T')[0];
   };
-  
 
-  const handleSubmit = () => {
-    if (!selectedCourseId && !isUpdate) {
-      setError('Please select a course.');
+  const handleUpdate = async () => {
+    if (!examId) {
+      setError('Exam ID not provided for update.');
       return;
     }
-  
-    // Transmitem `selectedCourseId` garantat ca string
-    onSubmit({
-      date,
-      notes: notes.trim(),
-      courseId: selectedCourseId as string,
-    });
-  
-    setNotes('');
-    setError(null);
-    onClose();
-    window.location.reload();
+
+    try {
+      const response = await api.put(`/event/exam-request/${examId}/pending`, {
+        date: date.toISOString(),
+        reason: notes.trim(),
+      });
+
+      if (response.status === 200) {
+        onClose();
+        window.location.reload();
+      }
+    } catch {
+      setError('Failed to update exam request. Please try again.');
+    }
   };
+
+  const handleSubmit = () => {
+    if (isUpdate) {
+      handleUpdate();
+    } else {
+      if (!selectedCourseId) {
+        setError('Please select a course.');
+        return;
+      }
+
+      onSubmit({
+        date,
+        notes: notes.trim(),
+        courseId: selectedCourseId,
+      });
+
+      setNotes('');
+      setError(null);
+      onClose();
+      window.location.reload();
+    }
+  };
+
   const handleClose = () => {
     onClose();
     window.location.reload();
   };
-  
+
   if (!isOpen) return null;
 
   return (
@@ -117,7 +144,7 @@ export function ExamRequestPopup({
                 />
               </div>
             )}
-           {!isUpdate && (
+            {!isUpdate && (
               <div>
                 <label htmlFor="course" className="block text-sm font-medium text-gray-700 mb-1">
                   Course
@@ -133,7 +160,7 @@ export function ExamRequestPopup({
                   </option>
                   {courses.map((course) => (
                     <option key={course.id} value={course.id}>
-                      {course.title} {(course.numeProfesor+' '+course.prenumeProfesor)}
+                      {course.title} {(course.numeProfesor + ' ' + course.prenumeProfesor)}
                     </option>
                   ))}
                 </select>
@@ -172,9 +199,7 @@ export function ExamRequestPopup({
               />
             </div>
 
-            {error && (
-              <div className="text-red-500 text-sm">{error}</div>
-            )}
+            {error && <div className="text-red-500 text-sm">{error}</div>}
 
             <div className="flex justify-end space-x-3">
               <button
@@ -195,4 +220,4 @@ export function ExamRequestPopup({
       </Card>
     </div>
   );
-} 
+}
