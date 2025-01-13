@@ -184,7 +184,6 @@ export default function StudentLeaderInbox() {
           initialNotes={selectedRequest.details.notes || ''}
           isUpdate={true}
           courseName={selectedRequest.title}
-          examId={selectedRequest.id}
         />
       )}
     </div>
