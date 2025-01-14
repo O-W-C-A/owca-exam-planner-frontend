@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
 import Link from 'next/link';
+import { useEffect } from 'react';
 
 export default function ErrorPage({
   error,
@@ -21,6 +21,8 @@ export default function ErrorPage({
         <h2 className="text-2xl font-semibold text-gray-800 mt-4">Something went wrong!</h2>
         <p className="text-gray-600 mt-2">Our team has been notified and is working on the issue.</p>
         <div className="mt-6 space-x-4">
+           
+
           <button
             onClick={reset}
             className="inline-block px-6 py-3 text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
