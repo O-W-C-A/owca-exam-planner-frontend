@@ -21,6 +21,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={inter.className}>
       <head>
         <link rel="icon" href="/usv_logo.ico" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap"
+          rel="stylesheet"
+        />
         <title>{globalMetadata.title}</title>
       </head>
       <body className="antialiased bg-blue-50">
