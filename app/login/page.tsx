@@ -75,10 +75,16 @@ export default function LoginPage() {
                 ? 'studentleader' 
                 : authData.role.toLowerCase();
 
+            // Define cookie options
+            const cookieOptions = {
+                path: '/',
+                sameSite: 'Strict' as 'Strict'
+            };
+
             // 2. Set cookies
-            Cookies.set('authToken', authData.token, { path: '/' });
-            Cookies.set('userId', String(authData.userId), { path: '/' });
-            Cookies.set('role', actualRole, { path: '/' });
+            Cookies.set('authToken', authData.token, cookieOptions);
+            Cookies.set('userId', String(authData.userId), cookieOptions);
+            Cookies.set('role', actualRole, cookieOptions);
 
             if (actualRole === 'studentleader') {
                 if (authData.groupId) {
