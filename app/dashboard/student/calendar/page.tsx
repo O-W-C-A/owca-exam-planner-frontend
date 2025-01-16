@@ -1,13 +1,11 @@
-// Import ExamType from the external file
-import { ExamType } from '@/types/examType';
-
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Calendar, Views, DateLocalizer } from 'react-big-calendar';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
 import localizer from '@/app/helpers/localizer';
 import Cookies from 'js-cookie';
 import api from '@/utils/axiosInstance';
+import { ExamType } from '@/types/examType';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 type Room = {
   name: string;
