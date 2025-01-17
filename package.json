@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "cross-env NEXT_PUBLIC_BASE_URL=https://owca-exam-planner.azurewebsites.net/ next dev",
     "dev:localhost": "cross-env NEXT_PUBLIC_BASE_URL=https://localhost:7267/ next dev",
-    "build": "next build",
-    "start": "next start",
+    "build": "cross-env NEXT_PUBLIC_BASE_URL=https://owca-exam-planner.azurewebsites.net/ next build",
+    "build:localhost": "cross-env NEXT_PUBLIC_BASE_URL=https://localhost:7267/ next build",
+    "start": "cross-env NEXT_PUBLIC_BASE_URL=https://owca-exam-planner.azurewebsites.net/ next start",
+    "start:localhost": "cross-env NEXT_PUBLIC_BASE_URL=https://localhost:7267/ next start",
     "lint": "next lint",
     "test": "jest",
     "cypress:open": "cypress open",
