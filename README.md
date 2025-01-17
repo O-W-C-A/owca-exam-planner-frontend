@@ -96,11 +96,7 @@ owca-exam-planner-frontend/
 This project is licensed under the MIT License.
 
 ---
-![](https://m.media-amazon.com/images/I/71ZjnV1eQYL.
-__AC_SX300_SY300_QL70_FMwebp_.jpg)
-![](https://m.media-amazon.com/images/I/71ZjnV1eQYL.
-__AC_SX300_SY300_QL70_FMwebp_.jpg)
-![](https://m.media-amazon.com/images/I/71ZjnV1eQYL.
-__AC_SX300_SY300_QL70_FMwebp_.jpg)
-![](https://m.media-amazon.com/images/I/71ZjnV1eQYL.
-__AC_SX300_SY300_QL70_FMwebp_.jpg)
+![](https://m.media-amazon.com/images/I/71ZjnV1eQYL.__AC_SX300_SY300_QL70_FMwebp_.jpg)
+![](https://m.media-amazon.com/images/I/71ZjnV1eQYL.__AC_SX300_SY300_QL70_FMwebp_.jpg)
+![](https://m.media-amazon.com/images/I/71ZjnV1eQYL.__AC_SX300_SY300_QL70_FMwebp_.jpg)
+![](https://m.media-amazon.com/images/I/71ZjnV1eQYL.__AC_SX300_SY300_QL70_FMwebp_.jpg)
