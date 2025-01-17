@@ -20,7 +20,7 @@ export const UserContext = createContext<UserContextType>({
 });
 
 export function UserProvider({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [user, setUser] = useState<User>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string>();
   const userRole = Cookies.get('role')?.toLowerCase() || 'student';
 
@@ -41,7 +41,11 @@ export function UserProvider({ children }: Readonly<{ children: React.ReactNode 
   };
 
   useEffect(() => {
-    fetchUser();
+    // Only fetch user if userId cookie is present
+    const userId = Cookies.get('userId');
+    if (userId) {
+      fetchUser();
+    }
   }, []);
 
   const contextValue = useMemo(() => ({
@@ -59,10 +63,10 @@ export function UserProvider({ children }: Readonly<{ children: React.ReactNode 
   );
 }
 
-export function useUser() {
+export const useUser = () => {
   const context = useContext(UserContext);
   if (context === undefined) {
     throw new Error('useUser must be used within a UserProvider');
   }
   return context;
-} 
+}; 

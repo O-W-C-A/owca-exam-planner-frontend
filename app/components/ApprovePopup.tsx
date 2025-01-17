@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Select from 'react-select';
 import api from '@/utils/axiosInstance';
+import { ExamType } from '@/types/examType';
 
 type Assistant = {
   id: string;
@@ -25,7 +26,7 @@ type ApprovePopupProps = Readonly<{
     timeStart: string;
     timeEnd: string;
     assistantId?: string;
-    type: string;
+    type: ExamType;
     notes?: string;
     roomsId: number[];
   }) => void;
@@ -36,7 +37,7 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
   const [timeEnd, setTimeEnd] = useState('');
   const [assistants, setAssistants] = useState<Assistant[]>([]);
   const [selectedAssistant, setSelectedAssistant] = useState<{ value: string; label: string } | null>(null);
-  const [examType, setExamType] = useState<string>('Written');
+  const [examType, setExamType] = useState<ExamType>(ExamType.Written);
   const [notes, setNotes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -84,12 +85,11 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
     label: `${room.name} (${room.location})`
   }));
 
-  const examTypes = [
-    { value: 'Written', label: 'Written' },
-    { value: 'Oral', label: 'Oral' },
-    { value: 'Project', label: 'Project' },
-    { value: 'Practice', label: 'Practice' }
-  ];
+  // Create the options for the select dropdown based on the ExamType enum
+  const examTypes = Object.values(ExamType).map(value => ({
+    value,
+    label: value,
+  }));
 
   const isFormValid = timeStart && 
                      timeEnd && 
@@ -160,7 +160,7 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
             <Select
               id="examType"
               value={examTypes.find(type => type.value === examType)}
-              onChange={(option) => setExamType(option?.value || 'Written')}
+              onChange={(option) => setExamType(option?.value as ExamType)}
               options={examTypes}
               className="w-full"
               required

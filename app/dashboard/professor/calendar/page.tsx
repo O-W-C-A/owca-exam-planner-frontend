@@ -11,12 +11,13 @@ import { RejectPopup } from '@/app/components/RejectPopup';
 import { ApprovePopup } from '@/app/components/ApprovePopup';
 import { useUser } from '@/contexts/UserContext';
 import { Course, CourseOption } from '@/types/course';
+import { ExamType } from '@/types/examType';
 
-type ExamType = 'Written' | 'Oral' | 'Project' | 'Practice';
 type Room = {
   name: string;
   location: string;
 };
+
 type Event = {
   id: string;
   title: string;
@@ -69,10 +70,7 @@ const ProfessorCalendar: React.FC = () => {
       const response = await api.get(endpoint);
       if (response.status === 200) {
         const parsedEvents = response.data.map((event: Event) => {
-          // Create base date from the date field
           const baseDate = new Date(event.date);
-          
-          // If start time exists, set it on the base date
           const startDate = new Date(baseDate);
           const endDate = new Date(baseDate);
           
@@ -95,7 +93,7 @@ const ProfessorCalendar: React.FC = () => {
               professor: event.details?.professor,
               assistant: event.details?.assistant,
               group: event.details?.group,
-              type: event.details?.type ?? 'Written',
+              type: event.details?.type ?? ExamType.Written,
               notes: event.details?.notes ?? '',
               rooms: event.details?.rooms,
             },
@@ -147,9 +145,9 @@ const ProfessorCalendar: React.FC = () => {
     timeStart: string;
     timeEnd: string;
     assistantId?: string;
-    type: string;
+    type: ExamType;
     notes?: string;
-    roomsId:number[];
+    roomsId: number[];
   }) => {
     try {
       if (!selectedEvent) return;
@@ -223,7 +221,7 @@ const ProfessorCalendar: React.FC = () => {
         )}
          {event.details?.rooms && event.details?.rooms.length > 0 && (
           <p className="mb-2">
-            <strong className="font-semibold">Sali:</strong>{' '}
+            <strong className="font-semibold">Rooms:</strong>{' '}
             {event.details.rooms.map((room: { name: string; location: string }) => `${room.name} (${room.location})`).join(', ')}
           </p>
         )}

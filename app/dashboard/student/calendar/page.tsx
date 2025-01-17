@@ -1,12 +1,12 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Calendar, Views, DateLocalizer } from 'react-big-calendar';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
 import localizer from '@/app/helpers/localizer';
 import Cookies from 'js-cookie';
 import api from '@/utils/axiosInstance';
+import { ExamType } from '@/types/examType';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
 
-type ExamType = 'Written' | 'Oral' | 'Project' | 'Practice';
 type Room = {
   name: string;
   location: string;
@@ -14,7 +14,7 @@ type Room = {
 
 type Event = {
   id: string;
-  title: string;          // Subject name
+  title: string;         // Subject name
   start: Date;           // Exam date and time
   end: Date;             // Exam end time
   isConfirmed: boolean;
@@ -28,7 +28,7 @@ type Event = {
       lastName: string;
     };
     room?: string;       // Optional room
-    type?: ExamType;     // Optional exam type
+    type?: ExamType;     // Optional exam type from the enum
     notes?: string;      // Optional notes
     rooms : Room[];
   };
@@ -52,7 +52,7 @@ type ApiEvent = {
     rooms: Room[];
     group: string;
     notes?: string;
-    type?: ExamType;
+    type?: ExamType; // Use the ExamType enum here as well
   };
 };
 
@@ -123,7 +123,7 @@ const StudentCalendar: React.FC = () => {
             <strong className="font-semibold">Room:</strong> {event.details.room}
           </p>
         )}
-       {event.details?.rooms && event.details?.rooms.length > 0 && (
+        {event.details?.rooms && event.details?.rooms.length > 0 && (
         <p className="mb-2">
           <strong className="font-semibold">Sali:</strong>{' '}
           {event.details.rooms.map((room: Room) => `${room.name} (${room.location})`).join(', ')}

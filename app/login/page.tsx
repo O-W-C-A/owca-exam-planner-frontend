@@ -76,16 +76,16 @@ export default function LoginPage() {
                 : authData.role.toLowerCase();
 
             // 2. Set cookies
-            Cookies.set('authToken', authData.token, { path: '/' });
-            Cookies.set('userId', String(authData.userId), { path: '/' });
-            Cookies.set('role', actualRole, { path: '/' });
+            Cookies.set('authToken', authData.token, { path: '/', sameSite: 'Strict', secure: true });
+            Cookies.set('userId', String(authData.userId), { path: '/', sameSite: 'Strict', secure: true });
+            Cookies.set('role', actualRole, {path: '/', sameSite: 'Strict', secure: true });
 
             if (actualRole === 'studentleader') {
                 if (authData.groupId) {
-                    Cookies.set('groupId', String(authData.groupId), { path: '/' });
+                    Cookies.set('groupId', String(authData.groupId), {path: '/', sameSite: 'Strict', secure: true });
                 }
                 if (authData.groupName) {
-                    Cookies.set('groupName', authData.groupName, { path: '/' });
+                    Cookies.set('groupName', authData.groupName, {path: '/', sameSite: 'Strict', secure: true });
                 }
             }
 

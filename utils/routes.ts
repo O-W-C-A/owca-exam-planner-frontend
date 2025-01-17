@@ -25,20 +25,38 @@ export const getDashboardRoute = (role: UserRole): string => {
   return roleMap[role.toLowerCase() as UserRole] || ROUTES.LOGIN;
 };
 
-// Check if user has access to current path
 export const hasAccess = (role: string, path: string): boolean => {
-  if (!role) return false;
+  if (!role) {
+    console.log(`Access denied: No role provided for path "${path}".`);
+    return false;
+  }
 
   const normalizedRole = role.toLowerCase() as UserRole;
   const normalizedPath = path.toLowerCase();
 
-  // Special case for studentleader who can access student paths
+  console.log(`Checking access for role "${normalizedRole}" to path "${normalizedPath}"...`);
+
+  // Explicit access rules with subpath support
   if (normalizedRole === 'studentleader') {
-    return normalizedPath.startsWith('/dashboard/studentleader') || 
-           normalizedPath.startsWith('/dashboard/student');
+    const hasAccess = normalizedPath.startsWith('/dashboard/studentleader');
+    console.log(`Role "studentleader": ${hasAccess ? 'Access granted' : 'Access denied'} to path "${normalizedPath}".`);
+    return hasAccess;
   }
 
-  return normalizedPath.startsWith(`/dashboard/${normalizedRole}`);
+  if (normalizedRole === 'student') {
+    // Ensure `studentleader` is excluded
+    const hasAccess = normalizedPath.startsWith('/dashboard/student') &&
+                      !normalizedPath.startsWith('/dashboard/studentleader');
+    console.log(`Role "student": ${hasAccess ? 'Access granted' : 'Access denied'} to path "${normalizedPath}".`);
+    return hasAccess;
+  }
+
+  // General rule for other roles
+  const hasAccess = normalizedPath.startsWith(`/dashboard/${normalizedRole}`);
+  console.log(`Role "${normalizedRole}": ${hasAccess ? 'Access granted' : 'Access denied'} to path "${normalizedPath}".`);
+  return hasAccess;
 };
+
+
 
 export { ROUTES }; 
