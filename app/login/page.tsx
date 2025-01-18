@@ -76,16 +76,31 @@ export default function LoginPage() {
                 : authData.role.toLowerCase();
 
             // 2. Set cookies
-            Cookies.set('authToken', authData.token, { path: '/', sameSite: 'Strict', secure: true });
-            Cookies.set('userId', String(authData.userId), { path: '/', sameSite: 'Strict', secure: true });
-            Cookies.set('role', actualRole, {path: '/', sameSite: 'Strict', secure: true });
+            // Define a type for the 'sameSite' attribute to enforce valid values
+            type SameSite = "Strict" | "Lax" | "None";
 
-            if (actualRole === 'studentleader') {
+            // Common cookie options with a strongly typed 'sameSite'
+            const cookieOptions: {
+                path: string;
+                sameSite: SameSite;
+                secure: boolean;
+            } = {
+                path: "/",
+                sameSite: "Strict",
+                secure: true,
+            };
+
+            // 2. Set cookies
+            Cookies.set("authToken", authData.token, cookieOptions);
+            Cookies.set("userId", String(authData.userId), cookieOptions);
+            Cookies.set("role", actualRole, cookieOptions);
+
+            if (actualRole === "studentleader") {
                 if (authData.groupId) {
-                    Cookies.set('groupId', String(authData.groupId), {path: '/', sameSite: 'Strict', secure: true });
+                Cookies.set("groupId", String(authData.groupId), cookieOptions);
                 }
                 if (authData.groupName) {
-                    Cookies.set('groupName', authData.groupName, {path: '/', sameSite: 'Strict', secure: true });
+                Cookies.set("groupName", authData.groupName, cookieOptions);
                 }
             }
 
