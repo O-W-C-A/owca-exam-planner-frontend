@@ -1,8 +1,7 @@
-const { defineConfig } = require('cypress');
+import { defineConfig } from 'cypress';
 
 module.exports = defineConfig({
   e2e: {
-    baseUrl: 'http://localhost:3000', // Adaptează portul dacă folosești altul
-    
+    baseUrl: process.env.CYPRESS_baseUrl || 'http://localhost:3000',
   },
 });
