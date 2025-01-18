@@ -1,11 +1,11 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import { Calendar, Views, DateLocalizer } from 'react-big-calendar';
-import localizer from '@/app/helpers/localizer';
-import Cookies from 'js-cookie';
-import api from '@/utils/axiosInstance';
-import { ExamType } from '@/types/examType';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
+"use client";
+import React, { useState, useEffect } from "react";
+import { Calendar, Views, DateLocalizer } from "react-big-calendar";
+import localizer from "@/app/helpers/localizer";
+import Cookies from "js-cookie";
+import api from "@/utils/axiosInstance";
+import { ExamType } from "@/types/examType";
+import "react-big-calendar/lib/css/react-big-calendar.css";
 
 type Room = {
   name: string;
@@ -14,23 +14,25 @@ type Room = {
 
 type Event = {
   id: string;
-  title: string;         // Subject name
-  start: Date;           // Exam date and time
-  end: Date;             // Exam end time
+  title: string; // Subject name
+  start: Date; // Exam date and time
+  end: Date; // Exam end time
   isConfirmed: boolean;
-  details?: {            // Optional details (might be empty for unconfirmed exams)
+  details?: {
+    // Optional details (might be empty for unconfirmed exams)
     professor: {
       firstName: string;
       lastName: string;
     };
-    assistant?: {        // Optional assistant
+    assistant?: {
+      // Optional assistant
       firstName: string;
       lastName: string;
     };
-    room?: string;       // Optional room
-    type?: ExamType;     // Optional exam type from the enum
-    notes?: string;      // Optional notes
-    rooms : Room[];
+    room?: string; // Optional room
+    type?: ExamType; // Optional exam type from the enum
+    notes?: string; // Optional notes
+    rooms: Room[];
   };
 };
 type ApiEvent = {
@@ -62,7 +64,9 @@ const StudentCalendar: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [events, setEvents] = useState<Event[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<typeof Views[keyof typeof Views]>(Views.MONTH);
+  const [view, setView] = useState<(typeof Views)[keyof typeof Views]>(
+    Views.MONTH
+  );
   const [date, setDate] = useState(new Date());
 
   useEffect(() => {
@@ -72,26 +76,31 @@ const StudentCalendar: React.FC = () => {
 
   const fetchEvents = async (): Promise<void> => {
     try {
-      const userId = Cookies.get('userId');
+      const userId = Cookies.get("userId");
       const response = await api.get(`/events/student/${userId}`);
-  
+
       if (response.status === 200) {
-        const parsedEvents: Event[] = response.data.map((event: ApiEvent) => ({
-          ...event,
-          start: event.start ? new Date(`${event.date}T${event.start}`) : null,
-          end: event.end ? new Date(`${event.date}T${event.end}`) : null,
-          isConfirmed: event.status === 'Approved', // Setăm isConfirmed pe baza statusului
-        })).filter((event: Event) => event.start && event.end); // Filtrăm evenimentele fără date valide
-      
+        const parsedEvents: Event[] = response.data
+          .map((event: ApiEvent) => ({
+            ...event,
+            start: event.start
+              ? new Date(`${event.date}T${event.start}`)
+              : null,
+            end: event.end ? new Date(`${event.date}T${event.end}`) : null,
+            isConfirmed: event.status === "Approved", // Setăm isConfirmed pe baza statusului
+          }))
+          .filter((event: Event) => event.start && event.end); // Filtrăm evenimentele fără date valide
+
         setEvents(parsedEvents);
       }
     } catch (error: unknown) {
-      console.log('Failed to load events', error);
-      setError(error instanceof Error ? error.message : 'Failed to load events');
+      console.log("Failed to load events", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to load events"
+      );
       setEvents([]);
     }
   };
-  
 
   const formatEventTitle = (event: Event) => {
     return event.title; // Show only subject name in calendar
@@ -109,42 +118,47 @@ const StudentCalendar: React.FC = () => {
     return (
       <>
         <p className="mb-2">
-          <strong className="font-semibold">Professor:</strong>{' '}
+          <strong className="font-semibold">Professor:</strong>{" "}
           {`${event.details.professor.firstName} ${event.details.professor.lastName}`}
         </p>
         {event.details.assistant && (
           <p className="mb-2">
-            <strong className="font-semibold">Assistant:</strong>{' '}
+            <strong className="font-semibold">Assistant:</strong>{" "}
             {`${event.details.assistant.firstName} ${event.details.assistant.lastName}`}
           </p>
         )}
         {event.details.room && (
           <p className="mb-2">
-            <strong className="font-semibold">Room:</strong> {event.details.room}
+            <strong className="font-semibold">Room:</strong>{" "}
+            {event.details.room}
           </p>
         )}
         {event.details?.rooms && event.details?.rooms.length > 0 && (
-        <p className="mb-2">
-          <strong className="font-semibold">Sali:</strong>{' '}
-          {event.details.rooms.map((room: Room) => `${room.name} (${room.location})`).join(', ')}
-        </p>
-      )}
+          <p className="mb-2">
+            <strong className="font-semibold">Sali:</strong>{" "}
+            {event.details.rooms
+              .map((room: Room) => `${room.name} (${room.location})`)
+              .join(", ")}
+          </p>
+        )}
         {event.details.type && (
           <p className="mb-2">
-            <strong className="font-semibold">Type:</strong> {event.details.type}
+            <strong className="font-semibold">Type:</strong>{" "}
+            {event.details.type}
           </p>
         )}
         <p className="mb-2">
-          <strong className="font-semibold">Date:</strong>{' '}
+          <strong className="font-semibold">Date:</strong>{" "}
           {event.start.toLocaleDateString()}
         </p>
         <p className="mb-2">
-          <strong className="font-semibold">Time:</strong>{' '}
+          <strong className="font-semibold">Time:</strong>{" "}
           {`${event.start.toLocaleTimeString()} - ${event.end.toLocaleTimeString()}`}
         </p>
         {event.details.notes && (
           <p className="mb-2">
-            <strong className="font-semibold">Notes:</strong> {event.details.notes}
+            <strong className="font-semibold">Notes:</strong>{" "}
+            {event.details.notes}
           </p>
         )}
       </>
@@ -173,18 +187,27 @@ const StudentCalendar: React.FC = () => {
           view={view}
           onView={setView}
           date={date}
-          onNavigate={date => setDate(date)}
+          onNavigate={(date) => setDate(date)}
           selectable
           culture="en-GB"
           formats={{
-            eventTimeRangeFormat: () => '',
-            eventTimeRangeEndFormat: () => '',
-            timeGutterFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
-              localizer?.format(date, 'HH:mm', culture ?? 'en-GB') ?? '',
-            dayFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
-              localizer?.format(date, 'EEE', culture ?? 'en-GB') ?? '',
-            dateFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
-              localizer?.format(date, 'd', culture ?? 'en-GB') ?? '',
+            eventTimeRangeFormat: () => "",
+            eventTimeRangeEndFormat: () => "",
+            timeGutterFormat: (
+              date: Date,
+              culture?: string,
+              localizer?: DateLocalizer
+            ) => localizer?.format(date, "HH:mm", culture ?? "en-GB") ?? "",
+            dayFormat: (
+              date: Date,
+              culture?: string,
+              localizer?: DateLocalizer
+            ) => localizer?.format(date, "EEE", culture ?? "en-GB") ?? "",
+            dateFormat: (
+              date: Date,
+              culture?: string,
+              localizer?: DateLocalizer
+            ) => localizer?.format(date, "d", culture ?? "en-GB") ?? "",
           }}
           titleAccessor={formatEventTitle}
           onSelectEvent={(event: Event) => {
@@ -193,22 +216,22 @@ const StudentCalendar: React.FC = () => {
           }}
           eventPropGetter={(event: Event) => ({
             style: {
-              backgroundColor: event.isConfirmed ? 'green' : 'red',
-              color: 'white',
-              borderRadius: '5px',
-              border: 'none',
+              backgroundColor: event.isConfirmed ? "green" : "red",
+              color: "white",
+              borderRadius: "5px",
+              border: "none",
             },
           })}
           messages={{
-            today: 'Today',
-            previous: 'Previous',
-            next: 'Next',
-            month: 'Month',
-            week: 'Week',
-            day: 'Day',
-            agenda: 'Agenda'
+            today: "Today",
+            previous: "Previous",
+            next: "Next",
+            month: "Month",
+            week: "Week",
+            day: "Day",
+            agenda: "Agenda",
           }}
-          views={['month', 'week', 'day']}
+          views={["month", "week", "day"]}
           toolbar={true}
         />
       </div>
@@ -217,19 +240,21 @@ const StudentCalendar: React.FC = () => {
         <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 shadow-lg max-w-md w-full relative">
             <div className="absolute inset-0 bg-white rounded-lg" />
-            
+
             <div className="relative">
               <h2 className="text-xl font-bold mb-4">
                 {selectedEvent.title}
-                <span className={`ml-2 px-2 py-1 text-sm rounded ${
-                  selectedEvent.isConfirmed 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {selectedEvent.isConfirmed ? 'Confirmed' : 'Unconfirmed'}
+                <span
+                  className={`ml-2 px-2 py-1 text-sm rounded ${
+                    selectedEvent.isConfirmed
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {selectedEvent.isConfirmed ? "Confirmed" : "Unconfirmed"}
                 </span>
               </h2>
-              
+
               {renderEventDetails(selectedEvent)}
 
               <div className="flex justify-end space-x-4 mt-6">

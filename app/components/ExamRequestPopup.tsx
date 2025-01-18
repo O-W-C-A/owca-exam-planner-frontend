@@ -1,32 +1,28 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './card';
-import api from '@/utils/axiosInstance';
+"use client";
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "./card";
+import api from "@/utils/axiosInstance";
 
 type ExamRequestProps = Readonly<{
   isOpen: boolean;
   onClose: () => void;
   selectedDate: Date;
-  onSubmit: (data: {
-    date: Date;
-    notes: string;
-    courseId: string;
-  }) => void;
+  onSubmit: (data: { date: Date; notes: string; courseId: string }) => void;
   initialNotes?: string;
   isUpdate?: boolean;
   courseName?: string;
   examId?: string; // ID-ul examenului pentru actualizare
 }>;
 
-export function ExamRequestPopup({ 
-  isOpen, 
-  onClose, 
-  selectedDate, 
+export function ExamRequestPopup({
+  isOpen,
+  onClose,
+  selectedDate,
   onSubmit,
-  initialNotes = '',
+  initialNotes = "",
   isUpdate = false,
-  courseName = '',
-  examId
+  courseName = "",
+  examId,
 }: ExamRequestProps) {
   const [date, setDate] = useState(() => {
     const d = new Date(selectedDate);
@@ -34,8 +30,15 @@ export function ExamRequestPopup({
   });
   const [notes, setNotes] = useState(initialNotes);
   const [error, setError] = useState<string | null>(null);
-  const [courses, setCourses] = useState<{ id: string; title: string ;numeProfesor: string;prenumeProfesor:string }[]>([]);
-  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
+  const [courses, setCourses] = useState<
+    {
+      id: string;
+      title: string;
+      numeProfesor: string;
+      prenumeProfesor: string;
+    }[]
+  >([]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
 
   useEffect(() => {
     if (!isUpdate) {
@@ -43,12 +46,12 @@ export function ExamRequestPopup({
       const fetchCourses = async () => {
         try {
           const userIdCookie = document.cookie
-            .split('; ')
-            .find((row) => row.startsWith('userId='))
-            ?.split('=')[1];
+            .split("; ")
+            .find((row) => row.startsWith("userId="))
+            ?.split("=")[1];
 
           if (!userIdCookie) {
-            setError('User ID not found in cookies.');
+            setError("User ID not found in cookies.");
             return;
           }
 
@@ -58,7 +61,7 @@ export function ExamRequestPopup({
 
           setCourses(response.data);
         } catch {
-          setError('No courses found.');
+          setError("No courses found.");
         }
       };
 
@@ -69,12 +72,14 @@ export function ExamRequestPopup({
   const getDateValue = (date: Date) => {
     const adjustedDate = new Date(date);
     adjustedDate.setDate(adjustedDate.getDate() + 1); // Adaugă o zi
-    return isNaN(adjustedDate.getTime()) ? '' : adjustedDate.toISOString().split('T')[0];
+    return isNaN(adjustedDate.getTime())
+      ? ""
+      : adjustedDate.toISOString().split("T")[0];
   };
 
   const handleUpdate = async () => {
     if (!examId) {
-      setError('Exam ID not provided for update.');
+      setError("Exam ID not provided for update.");
       return;
     }
 
@@ -89,7 +94,7 @@ export function ExamRequestPopup({
         window.location.reload();
       }
     } catch {
-      setError('Failed to update exam request. Please try again.');
+      setError("Failed to update exam request. Please try again.");
     }
   };
 
@@ -98,7 +103,7 @@ export function ExamRequestPopup({
       handleUpdate();
     } else {
       if (!selectedCourseId) {
-        setError('Please select a course.');
+        setError("Please select a course.");
         return;
       }
 
@@ -108,7 +113,7 @@ export function ExamRequestPopup({
         courseId: selectedCourseId,
       });
 
-      setNotes('');
+      setNotes("");
       setError(null);
       onClose();
       window.location.reload();
@@ -126,13 +131,18 @@ export function ExamRequestPopup({
     <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>{isUpdate ? 'Update Exam Request' : 'Request Exam Date'}</CardTitle>
+          <CardTitle>
+            {isUpdate ? "Update Exam Request" : "Request Exam Date"}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {isUpdate && (
               <div>
-                <label htmlFor="course" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="course"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Course
                 </label>
                 <input
@@ -146,7 +156,10 @@ export function ExamRequestPopup({
             )}
             {!isUpdate && (
               <div>
-                <label htmlFor="course" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="course"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Course
                 </label>
                 <select
@@ -160,14 +173,18 @@ export function ExamRequestPopup({
                   </option>
                   {courses.map((course) => (
                     <option key={course.id} value={course.id}>
-                      {course.title} {(course.numeProfesor + ' ' + course.prenumeProfesor)}
+                      {course.title}{" "}
+                      {course.numeProfesor + " " + course.prenumeProfesor}
                     </option>
                   ))}
                 </select>
               </div>
             )}
             <div>
-              <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="date"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Date
               </label>
               <input
@@ -175,19 +192,24 @@ export function ExamRequestPopup({
                 type="date"
                 value={getDateValue(date)}
                 onChange={(e) => {
-                  const newDate = e.target.value ? new Date(e.target.value) : new Date();
+                  const newDate = e.target.value
+                    ? new Date(e.target.value)
+                    : new Date();
                   setDate(newDate);
                 }}
                 className="w-full px-3 py-2 border rounded-md [&::-webkit-calendar-picker-indicator]:bg-white [&::-webkit-calendar-picker-indicator]:dark:bg-white [&::-webkit-calendar-picker-indicator]:p-1 [&::-webkit-calendar-picker-indicator]:rounded [&::-webkit-clear-button]:hidden"
-                min={new Date().toISOString().split('T')[0]}
+                min={new Date().toISOString().split("T")[0]}
                 style={{
-                  colorScheme: 'light'
+                  colorScheme: "light",
                 }}
               />
             </div>
 
             <div>
-              <label htmlFor="details" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="details"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Details
               </label>
               <textarea
@@ -212,7 +234,7 @@ export function ExamRequestPopup({
                 onClick={handleSubmit}
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
               >
-                {isUpdate ? 'Update' : 'Submit'}
+                {isUpdate ? "Update" : "Submit"}
               </button>
             </div>
           </div>

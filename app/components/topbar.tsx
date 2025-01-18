@@ -1,10 +1,10 @@
-'use client';
-import { useState, useEffect, useRef } from 'react';
-import { LogOut, User } from 'lucide-react';
-import Logout from './logout';
-import { cn } from '@/utils/cn';
-import Link from 'next/link';
-import { useUser } from '@/contexts/UserContext';
+"use client";
+import { useState, useEffect, useRef } from "react";
+import { LogOut, User } from "lucide-react";
+import Logout from "./logout";
+import { cn } from "@/utils/cn";
+import Link from "next/link";
+import { useUser } from "@/contexts/UserContext";
 
 interface TopBarProps {
   className?: string;
@@ -32,8 +32,8 @@ const TopBar: React.FC<TopBarProps> = ({ className }) => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   if (!mounted) {
@@ -51,7 +51,7 @@ const TopBar: React.FC<TopBarProps> = ({ className }) => {
         <div className="flex h-16 items-center justify-between">
           {/* Left side - Brand/Logo */}
           <div className="flex items-center">
-            <Link 
+            <Link
               href={`/dashboard/${userRole}/calendar`}
               className="text-xl font-semibold text-blue-600 hover:text-blue-700 transition-colors"
             >
@@ -71,7 +71,9 @@ const TopBar: React.FC<TopBarProps> = ({ className }) => {
                 <User className="h-5 w-5 text-white" />
               </div>
               <span className="text-sm font-medium text-gray-700 pr-2">
-                {user ? `${user.firstname} ${user.lastname}` : error || 'Loading...'}
+                {user
+                  ? `${user.firstname} ${user.lastname}`
+                  : error || "Loading..."}
               </span>
             </button>
 
@@ -90,14 +92,14 @@ const TopBar: React.FC<TopBarProps> = ({ className }) => {
 
             {/* Profile Dropdown Menu */}
             {showProfileMenu && (
-              <div 
+              <div
                 ref={menuRef}
                 className="absolute right-0 top-full mt-2 w-48 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 z-50"
-                style={{ backdropFilter: 'blur(8px)' }}
+                style={{ backdropFilter: "blur(8px)" }}
               >
                 {/* White background overlay */}
                 <div className="absolute inset-0 bg-white rounded-md" />
-                
+
                 {/* Content */}
                 <div className="relative">
                   <div className="px-4 py-2 text-sm text-gray-700 bg-white">

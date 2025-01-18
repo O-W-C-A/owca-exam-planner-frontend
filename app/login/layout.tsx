@@ -1,12 +1,12 @@
 export const metadata = {
-  title: 'Login - ExamPlanner',
-  description: 'Login to ExamPlanner',
-}
+  title: "Login - ExamPlanner",
+  description: "Login to ExamPlanner",
+};
 
 export default function LoginLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return children;
 }

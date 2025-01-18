@@ -1,5 +1,5 @@
-'use client';
-import { useState } from 'react';
+"use client";
+import { useState } from "react";
 
 type RejectPopupProps = Readonly<{
   isOpen: boolean;
@@ -8,7 +8,7 @@ type RejectPopupProps = Readonly<{
 }>;
 
 export function RejectPopup({ isOpen, onClose, onReject }: RejectPopupProps) {
-  const [reason, setReason] = useState('');
+  const [reason, setReason] = useState("");
 
   if (!isOpen) return null;
 
@@ -16,14 +16,14 @@ export function RejectPopup({ isOpen, onClose, onReject }: RejectPopupProps) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
         <h3 className="text-lg font-semibold mb-4">Reject Exam Request</h3>
-        
+
         <textarea
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           placeholder="Enter rejection reason..."
           className="w-full p-3 border rounded-md h-32 mb-4"
         />
-        
+
         <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}
@@ -45,4 +45,4 @@ export function RejectPopup({ isOpen, onClose, onReject }: RejectPopupProps) {
       </div>
     </div>
   );
-} 
+}

@@ -1,5 +1,5 @@
-'use client';
-import React, { useEffect, useState } from 'react';
+"use client";
+import React, { useEffect, useState } from "react";
 
 export default function StudentLayout({
   children,
@@ -16,9 +16,5 @@ export default function StudentLayout({
     return null;
   }
 
-  return (
-    <main className="flex-1 p-6 flex flex-col min-h-0">
-      {children}
-    </main>
-  );
-} 
+  return <main className="flex-1 p-6 flex flex-col min-h-0">{children}</main>;
+}

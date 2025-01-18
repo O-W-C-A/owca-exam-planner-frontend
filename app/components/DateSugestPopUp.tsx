@@ -1,12 +1,12 @@
-'use client';
+"use client";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@radix-ui/react-popover';
-import { Calendar, CalendarIcon } from 'lucide-react'; // biblioteca ta de iconițe
-import { useState } from 'react';
-import { Button } from 'react-day-picker';
+} from "@radix-ui/react-popover";
+import { Calendar, CalendarIcon } from "lucide-react"; // biblioteca ta de iconițe
+import { useState } from "react";
+import { Button } from "react-day-picker";
 
 function DateSuggestionPopup() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -17,12 +17,12 @@ function DateSuggestionPopup() {
     if (selectedDate) {
       setStatus(
         `Data selectată a fost trimisă: ${selectedDate.toLocaleDateString(
-          'ro-RO',
-        )}`,
+          "ro-RO"
+        )}`
       );
       // Aici poți face apelul către server pentru a trimite data
     } else {
-      setStatus('Te rugăm să alegi o dată înainte de a trimite.');
+      setStatus("Te rugăm să alegi o dată înainte de a trimite.");
     }
   };
 
@@ -34,8 +34,8 @@ function DateSuggestionPopup() {
             <Button className="flex items-center gap-2">
               <CalendarIcon />
               {selectedDate
-                ? selectedDate.toLocaleDateString('ro-RO')
-                : 'Alege o dată'}
+                ? selectedDate.toLocaleDateString("ro-RO")
+                : "Alege o dată"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-4 flex flex-col gap-4">

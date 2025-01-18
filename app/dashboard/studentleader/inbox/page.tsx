@@ -1,9 +1,9 @@
-'use client';
-import { useState, useEffect, useCallback } from 'react';
-import api from '@/utils/axiosInstance';
-import Cookies from 'js-cookie';
-import { Toast } from '@/app/components/Toast';
-import { ExamRequestPopup } from '@/app/components/ExamRequestPopup';
+"use client";
+import { useState, useEffect, useCallback } from "react";
+import api from "@/utils/axiosInstance";
+import Cookies from "js-cookie";
+import { Toast } from "@/app/components/Toast";
+import { ExamRequestPopup } from "@/app/components/ExamRequestPopup";
 
 type Event = {
   id: string;
@@ -11,7 +11,7 @@ type Event = {
   date: string;
   start: string | null;
   end: string | null;
-  status: 'Pending' | 'Approved' | 'Rejected';
+  status: "Pending" | "Approved" | "Rejected";
   details: {
     professor: {
       firstName: string;
@@ -39,14 +39,16 @@ export default function StudentLeaderInbox() {
   const fetchExamRequests = useCallback(async () => {
     try {
       setIsLoading(true);
-      const userId = Cookies.get('userId');
+      const userId = Cookies.get("userId");
       const response = await api.get(`/events/student/${userId}`);
       if (response.status === 200) {
         setExamRequests(response.data);
       }
     } catch (error: unknown) {
-      console.log('Failed to load exam requests', error);
-      setError(error instanceof Error ? error.message : 'Failed to load exam requests');
+      console.log("Failed to load exam requests", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to load exam requests"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -56,38 +58,44 @@ export default function StudentLeaderInbox() {
     fetchExamRequests();
   }, [fetchExamRequests]);
 
-  const handleUpdate = async (data: {
-    date: Date;
-    notes: string;
-  }) => {
+  const handleUpdate = async (data: { date: Date; notes: string }) => {
     try {
       if (!selectedRequest) return;
-      
-      const formattedDate = data.date.toLocaleDateString('en-CA');
+
+      const formattedDate = data.date.toLocaleDateString("en-CA");
       const updateData = {
         examDate: formattedDate,
         details: data.notes,
-        status: 'Pending'
+        status: "Pending",
       };
 
-      const response = await api.put(`/event/exam-request/${selectedRequest.id}`, updateData);
+      const response = await api.put(
+        `/event/exam-request/${selectedRequest.id}`,
+        updateData
+      );
       if (response.status === 200) {
-        setToastMessage('Exam request updated and resubmitted');
+        setToastMessage("Exam request updated and resubmitted");
         setShowUpdatePopup(false);
         fetchExamRequests();
       }
     } catch (error: unknown) {
-      console.log('Failed to update exam request', error);
-      setToastMessage(error instanceof Error ? error.message : 'Failed to update exam request');
+      console.log("Failed to update exam request", error);
+      setToastMessage(
+        error instanceof Error ? error.message : "Failed to update exam request"
+      );
     }
   };
 
-  const formatDateTime = (date: string, start: string | null, end: string | null) => {
+  const formatDateTime = (
+    date: string,
+    start: string | null,
+    end: string | null
+  ) => {
     const eventDate = new Date(date);
-    const dateStr = eventDate.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
+    const dateStr = eventDate.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
     });
 
     if (start && end) {
@@ -98,24 +106,21 @@ export default function StudentLeaderInbox() {
 
   const getStatusStyles = (status: string) => {
     switch (status) {
-      case 'Pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'Approved':
-        return 'bg-green-100 text-green-800';
+      case "Pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "Approved":
+        return "bg-green-100 text-green-800";
       default:
-        return 'bg-red-100 text-red-800';
+        return "bg-red-100 text-red-800";
     }
   };
 
   return (
     <div className="h-full flex flex-col p-6">
       {toastMessage && (
-        <Toast 
-          message={toastMessage} 
-          onClose={() => setToastMessage(null)} 
-        />
+        <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
       )}
-      
+
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error}
@@ -138,16 +143,22 @@ export default function StudentLeaderInbox() {
                   <div>
                     <h3 className="font-medium text-lg">{request.title}</h3>
                     <p className="text-gray-600">
-                      Professor: {request.details.professor.firstName} {request.details.professor.lastName}
+                      Professor: {request.details.professor.firstName}{" "}
+                      {request.details.professor.lastName}
                     </p>
                   </div>
-                  <span className={`px-2 py-1 rounded text-sm ${getStatusStyles(request.status)}`}>
+                  <span
+                    className={`px-2 py-1 rounded text-sm ${getStatusStyles(
+                      request.status
+                    )}`}
+                  >
                     {request.status}
                   </span>
                 </div>
                 <div className="text-sm text-gray-600">
                   <p className="mb-1">
-                    Date: {formatDateTime(request.date, request.start, request.end)}
+                    Date:{" "}
+                    {formatDateTime(request.date, request.start, request.end)}
                   </p>
                   {request.details.type && (
                     <p className="mb-1">Type: {request.details.type}</p>
@@ -157,7 +168,7 @@ export default function StudentLeaderInbox() {
                   )}
                 </div>
                 <div className="flex justify-end mt-4 space-x-2">
-                  {request.status === 'Rejected' && (
+                  {request.status === "Rejected" && (
                     <button
                       onClick={() => {
                         setSelectedRequest(request);
@@ -181,7 +192,7 @@ export default function StudentLeaderInbox() {
           onClose={() => setShowUpdatePopup(false)}
           selectedDate={new Date(selectedRequest.date)}
           onSubmit={handleUpdate}
-          initialNotes={selectedRequest.details.notes || ''}
+          initialNotes={selectedRequest.details.notes || ""}
           isUpdate={true}
           courseName={selectedRequest.title}
           examId={selectedRequest.id}

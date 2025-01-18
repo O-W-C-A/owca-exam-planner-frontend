@@ -31,7 +31,7 @@ export function useExamRequests() {
       const endpoint = selectedCourse && selectedCourse.id !== 'all'
         ? `/event/exam-request/professor/${userId}/course/${selectedCourse.id}`
         : `/event/exam-request/professor/${userId}`;
-      
+
       const response = await api.get(endpoint);
       if (response.status === 200) {
         setExamRequests(response.data);
