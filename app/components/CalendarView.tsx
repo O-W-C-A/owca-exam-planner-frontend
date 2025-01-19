@@ -1,22 +1,25 @@
 import React from "react";
 import { Calendar, Views } from "react-big-calendar";
-import localizer from "@/utils/localizer"; // Localizer for date formatting (e.g., in British format)
-import { ExamRequest } from "@/types/examRequest"; // Type for exam request events
+import localizer from "@/utils/localizer"; // Localization utility for date formats
+import { ExamRequest } from "@/types/examRequest"; // Exam request type definition
 import {
   formatExamRequestTitle,
   getExamRequestBackgroundColor,
-} from "@/utils/examRequestUtils"; // Utility functions for title and background color formatting
+} from "@/utils/examRequestUtils"; // Utility functions for event titles and styles
 
-import { View } from "react-big-calendar"; // View types for the calendar (e.g., month, week, day)
+import { View } from "react-big-calendar";
+import Cookies from "js-cookie"; // To fetch user role from cookies
+import { UserType } from "@/types/userType"; // User type enum
 
+// Define the component's props interface
 interface CalendarViewProps {
-  events: ExamRequest[]; // Array of events to display on the calendar
-  view: View; // Current view of the calendar (e.g., month, week, day)
-  setView: (view: View) => void; // Function to change the current view
-  date: Date; // Currently selected date in the calendar
-  setDate: (date: Date) => void; // Function to change the selected date
+  events: ExamRequest[]; // List of events to display on the calendar
+  view: View; // Current calendar view (month, week, day)
+  setView: (view: View) => void; // Function to update the calendar view
+  date: Date; // Current date displayed in the calendar
+  setDate: (date: Date) => void; // Function to update the calendar date
   onEventSelect: (event: ExamRequest) => void; // Callback when an event is selected
-  onSlotSelect: (slotInfo: { start: Date; end: Date }) => void; // Callback when a time slot is selected
+  onSlotSelect: (slotInfo: { start: Date; end: Date }) => void; // Callback when a calendar slot is selected
 }
 
 const CalendarView: React.FC<CalendarViewProps> = ({
@@ -28,80 +31,77 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   onEventSelect,
   onSlotSelect,
 }) => {
-  // Wrap the onSlotSelect to filter invalid date selections (cannot select today or past dates)
+  const userRole = Cookies.get("role"); // Fetch user role from cookies
+
+  /**
+   * Handles slot selection with validation:
+   * - Prevents selecting today or past dates.
+   * - Checks if the selected day already has an event.
+   */
   const handleSlotSelect = (slotInfo: { start: Date; end: Date }) => {
-    const now = new Date(); // Current date and time
-    now.setHours(0, 0, 0, 0); // Reset time to midnight (start of the day)
-  
-    // Create a new date object for the selected start date, setting its time to midnight for comparison
+    const now = new Date();
+    now.setHours(0, 0, 0, 0); // Normalize to the start of the current day
+
     const selectedStart = new Date(slotInfo.start);
-    selectedStart.setHours(0, 0, 0, 0); // Set the time to midnight for correct comparison
-  
-    // Compare if the selected date is today or in the past
-    const isPastOrToday = selectedStart.getTime() <= now.getTime(); // Timestamp comparison
-    if (isPastOrToday) {
-      // Prevent the user from selecting past or today’s date by showing an alert
+    selectedStart.setHours(0, 0, 0, 0); // Normalize to the start of the selected day
+
+    if (selectedStart.getTime() <= now.getTime()) {
       alert("Cannot select slots on the current or past days.");
-      return; // Do nothing if the date is invalid
+      return;
     }
-  
-    // Check if there are any events on the same day (ignoring time)
+
     const isDayTaken = events.some((event) => {
-      const eventDate = new Date(event.date); // Assuming the event start time is in `start`
-      eventDate.setHours(0, 0, 0, 0); // Reset event's time to midnight for comparison
-  
-      // If the event's date is the same as the selected day, return true
+      const eventDate = new Date(event.date);
+      eventDate.setHours(0, 0, 0, 0);
       return selectedStart.getTime() === eventDate.getTime();
     });
-  
+
     if (isDayTaken) {
-      // Prevent the user from opening the popup for a day that already has an event
       alert("There is already an event on this day. Please select another day.");
-      return; // Do nothing if the day is already taken
+      return;
     }
-  
-    // If the date is valid and the slot is not taken, call the onSlotSelect callback
+
+    // Proceed with the valid slot selection
     onSlotSelect(slotInfo);
   };
-  
 
   return (
     <Calendar
-      localizer={localizer} // Localizer to format dates according to locale
-      events={events} // List of events to display
-      startAccessor="start" // Accessor to define where the event start date is stored
-      endAccessor="end" // Accessor to define where the event end date is stored
-      className="h-full" // Full height for the calendar
-      defaultView={Views.MONTH} // Default view is set to month
-      view={view} // Current view (can be month, week, or day)
-      onView={setView} // Function to set the calendar view
-      date={date} // Currently selected date in the calendar
-      onNavigate={setDate} // Function to update the selected date when navigating the calendar
-      selectable // Enables selecting time slots
-      culture="en-GB" // Locale for British English (can be changed as needed)
+      localizer={localizer}
+      events={events} // Event data
+      startAccessor="start" // Field for event start time
+      endAccessor="end" // Field for event end time
+      className="h-full"
+      defaultView={Views.MONTH} // Default view is month
+      view={view} // Controlled view
+      onView={setView} // Handle view changes
+      date={date} // Controlled date
+      onNavigate={setDate} // Handle date navigation
+      selectable={userRole !== UserType.Student} // Allow slot selection only for non-student users
+      culture="en-GB" // Set culture for date formats
       formats={{
-        eventTimeRangeFormat: () => "", // Do not display the time range in the event title
-        eventTimeRangeEndFormat: () => "", // Do not display the time range end in the event title
+        eventTimeRangeFormat: () => "", // Hide time range in events
+        eventTimeRangeEndFormat: () => "", // Hide end time
         timeGutterFormat: (date, culture, localizer) =>
-          localizer?.format(date, "HH:mm", culture ?? "en-GB") || "", // Format the time for the gutter (left side of calendar)
+          localizer?.format(date, "HH:mm", culture ?? "en-GB") || "",
         dayFormat: (date, culture, localizer) =>
-          localizer?.format(date, "EEE", culture ?? "en-GB") || "", // Format the day header as short weekday (e.g., Mon, Tue)
+          localizer?.format(date, "EEE", culture ?? "en-GB") || "",
         dateFormat: (date, culture, localizer) =>
-          localizer?.format(date, "d", culture ?? "en-GB") || "", // Format the date as a single day (e.g., 1, 2, 3)
+          localizer?.format(date, "d", culture ?? "en-GB") || "",
       }}
-      titleAccessor={formatExamRequestTitle} // Function to format the title of the exam request event
-      onSelectEvent={onEventSelect} // Function to call when an event is selected
+      titleAccessor={formatExamRequestTitle} // Custom title accessor
+      onSelectEvent={onEventSelect} // Handle event selection
       eventPropGetter={(event) => ({
         style: {
-          backgroundColor: getExamRequestBackgroundColor(event.status), // Set event background color based on status
-          color: "white", // White text color for contrast
-          borderRadius: "5px", // Rounded corners for event box
-          border: "none", // No border
+          backgroundColor: getExamRequestBackgroundColor(event.status), // Event background color based on status
+          color: "white",
+          borderRadius: "5px",
+          border: "none",
         },
       })}
-      views={["month", "week", "day"]} // Supported calendar views (month, week, day)
-      toolbar={true} // Display the toolbar for changing views
-      onSelectSlot={handleSlotSelect} // Handle time slot selection and validation
+      views={["month", "week", "day"]} // Enable month, week, and day views
+      toolbar={true} // Show toolbar
+      onSelectSlot={userRole !== UserType.Student ? handleSlotSelect : undefined} // Pass slot selection handler only for non-student users
     />
   );
 };
