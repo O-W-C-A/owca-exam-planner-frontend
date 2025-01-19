@@ -1,5 +1,5 @@
 import React from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/app/hooks/use-mobile";
 
 type SidebarContext = {
   state: "expanded" | "collapsed";

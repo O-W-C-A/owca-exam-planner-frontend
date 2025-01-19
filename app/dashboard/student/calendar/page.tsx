@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Calendar, Views, DateLocalizer } from "react-big-calendar";
-import localizer from "@/app/helpers/localizer";
+import localizer from "@/utils/localizer";
 import Cookies from "js-cookie";
 import api from "@/utils/axiosInstance";
 import { ExamType } from "@/types/examType";

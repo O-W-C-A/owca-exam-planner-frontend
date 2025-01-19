@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Calendar, Views, DateLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import localizer from "@/app/helpers/localizer";
+import localizer from "@/utils/localizer";
 import Cookies from "js-cookie";
 import api from "@/utils/axiosInstance";
 import Select from "react-select";

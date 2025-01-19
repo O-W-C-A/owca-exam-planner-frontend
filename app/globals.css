@@ -12,3 +12,31 @@ body {
   background: var(--background);
   font-family: "Noto Sans", Arial, sans-serif;
 }
+
+/* Error Toast animations */
+@keyframes slideIn {
+  0% {
+    transform: translateX(100%); /* Start off-screen to the right */
+  }
+  100% {
+    transform: translateX(0); /* End at its normal position */
+  }
+}
+
+@keyframes slideOut {
+  0% {
+    transform: translateX(0); /* Start at normal position */
+  }
+  100% {
+    transform: translateX(100%); /* End off-screen to the right */
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.5s ease-out forwards;
+}
+
+.animate-slideOut {
+  animation: slideOut 0.5s ease-in forwards;
+}
+
