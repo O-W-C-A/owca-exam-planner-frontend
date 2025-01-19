@@ -10,6 +10,8 @@ export const getExamRequestBackgroundColor = (status: string) => {
             return "#22c55e";
         case "Rejected":
             return "#ef4444";
+        case "Pending":
+            return "#f59e0b";
         default:
             return "#f59e0b";
     }
@@ -22,7 +24,9 @@ export const getExamRequestStatusStyles = (status: string) => {
             return "bg-green-100 text-green-800";
         case "Rejected":
             return "bg-red-100 text-red-800";
+        case "Pending":
+            return "bg-yellow-100 text-yellow-800";
         default:
-            return "bg-amber-100 text-amber-800";
+            return "bg-gray-100 text-gray-800";
     }
 };
