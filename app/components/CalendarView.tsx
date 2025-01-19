@@ -32,11 +32,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const handleSlotSelect = (slotInfo: { start: Date; end: Date }) => {
     const now = new Date(); // Current date and time
     now.setHours(0, 0, 0, 0); // Reset time to midnight (start of the day)
-
+  
     // Create a new date object for the selected start date, setting its time to midnight for comparison
     const selectedStart = new Date(slotInfo.start);
     selectedStart.setHours(0, 0, 0, 0); // Set the time to midnight for correct comparison
-
+  
     // Compare if the selected date is today or in the past
     const isPastOrToday = selectedStart.getTime() <= now.getTime(); // Timestamp comparison
     if (isPastOrToday) {
@@ -44,9 +44,26 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       alert("Cannot select slots on the current or past days.");
       return; // Do nothing if the date is invalid
     }
-    // If the date is valid, call the onSlotSelect callback
+  
+    // Check if there are any events on the same day (ignoring time)
+    const isDayTaken = events.some((event) => {
+      const eventDate = new Date(event.date); // Assuming the event start time is in `start`
+      eventDate.setHours(0, 0, 0, 0); // Reset event's time to midnight for comparison
+  
+      // If the event's date is the same as the selected day, return true
+      return selectedStart.getTime() === eventDate.getTime();
+    });
+  
+    if (isDayTaken) {
+      // Prevent the user from opening the popup for a day that already has an event
+      alert("There is already an event on this day. Please select another day.");
+      return; // Do nothing if the day is already taken
+    }
+  
+    // If the date is valid and the slot is not taken, call the onSlotSelect callback
     onSlotSelect(slotInfo);
   };
+  
 
   return (
     <Calendar
