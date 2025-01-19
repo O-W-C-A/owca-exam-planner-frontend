@@ -14,7 +14,6 @@ const StudentCalendar: React.FC = () => {
   // State management
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility state
   const [selectedEvent, setSelectedEvent] = useState<ExamRequest | null>(null); // Selected event for modal
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null); // Selected date for new requests
   const { examRequests, error } = useExamRequests(); // Fetch exam requests using a custom hook
   const [view, setView] = useState<View>("month"); // Calendar view state (month, week, day)
   const [date, setDate] = useState<Date>(new Date()); // Current calendar date
@@ -36,36 +35,6 @@ const StudentCalendar: React.FC = () => {
     setIsModalOpen(false); // Close the modal
   };
 
-  /**
-   * Handles slot selection for creating new exam requests.
-   * Validates that the selected date is in the future and not already booked.
-   */
-  const handleSlotSelect = (slotInfo: { start: Date; end: Date }) => {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0); // Reset to midnight for comparison
-
-    const selectedDate = new Date(slotInfo.start);
-    selectedDate.setHours(0, 0, 0, 0); // Reset selected date to midnight
-
-    if (selectedDate.getTime() <= now.getTime()) {
-      alert("Cannot select slots for today or past dates.");
-      return; // Exit if the date is invalid
-    }
-
-    const isDateTaken = examRequests.some((event) => {
-      const eventDate = new Date(event.date); // Assuming `event.date` contains the event date
-      eventDate.setHours(0, 0, 0, 0); // Reset event date to midnight
-      return eventDate.getTime() === selectedDate.getTime();
-    });
-
-    if (isDateTaken) {
-      alert("This date is already taken. Please select another date.");
-      return; // Exit if the date is already booked
-    }
-
-    setSelectedDate(selectedDate); // Update the selected date for creating a new request
-  };
-
   // No-op function to disable slot selection for students
   const noop = () => {};
 
@@ -83,7 +52,7 @@ const StudentCalendar: React.FC = () => {
           date={date} // Current calendar date
           setDate={setDate} // Function to update date
           onEventSelect={handleSelectEvent} // Handle event selection
-          onSlotSelect={userRole !== UserType.Student ? handleSlotSelect : noop} // Disable slot selection for students
+          onSlotSelect={noop} // Disable slot selection for students
         />
       </div>
 

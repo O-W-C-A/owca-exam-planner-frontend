@@ -101,7 +101,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       })}
       views={["month", "week", "day"]} // Enable month, week, and day views
       toolbar={true} // Show toolbar
-      onSelectSlot={userRole !== UserType.Student ? handleSlotSelect : undefined} // Pass slot selection handler only for non-student users
+      onSelectSlot={(userRole !== UserType.Student && userRole !== UserType.Professor) ? handleSlotSelect : undefined} // Pass slot selection handler only for non-student users
     />
   );
 };
