@@ -21,8 +21,12 @@ export function RejectPopup({ isOpen, onClose, onReject }: RejectPopupProps) {
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           placeholder="Enter rejection reason..."
-          className="w-full p-3 border rounded-md h-32 mb-4"
+          className="w-full p-3 border rounded-md h-32 mb-4 min-h-[120px] max-h-[200px]"
+          maxLength={150} // Limit to 150 characters
         />
+        <p className="text-sm text-gray-500 mt-1">
+          {reason.length} / 150 characters
+        </p>
 
         <div className="flex justify-end space-x-3">
           <button

@@ -210,9 +210,13 @@ export function ExamRequestPopup({
                 id="details"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md min-h-[100px]"
+                className="w-full px-3 py-2 border rounded-md min-h-[100px] max-h-[150px]"
                 placeholder="Add any additional details..."
+                maxLength={120} // Limit to 120 characters
               />
+              <p className="text-sm text-gray-500 mt-1">
+                {notes.length} / 120 characters
+              </p>
             </div>
 
             {/* Display any error */}

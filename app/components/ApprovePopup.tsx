@@ -217,8 +217,12 @@ export function ApprovePopup({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Enter additional details..."
-              className="w-full p-3 border rounded-md h-24"
+              className="w-full p-3 border rounded-md h-24 min-h-[100px] max-h-[150px]"
+              maxLength={120} // Limit to 120 characters
             />
+            <p className="text-sm text-gray-500 mt-1">
+              {notes.length} / 120 characters
+            </p>
           </div>
         </div>
 
