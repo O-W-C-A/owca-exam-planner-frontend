@@ -3,7 +3,6 @@
 
 // Import necessary libraries and components
 import React, { useState, useEffect } from "react";
-import { ToastMessage } from "@/app/components/ToastMessage"; // ToastMessage notifications for user feedback
 import { RejectPopup } from "@/app/components/RejectPopup"; // Popup for rejecting an exam request
 import { ApprovePopup } from "@/app/components/ApprovePopup"; // Popup for approving an exam request
 import { useUser } from "@/contexts/UserContext"; // Context hook to access user details
@@ -136,8 +135,8 @@ const ProfessorCalendar: React.FC = () => {
         fetchExamRequests(null);
       }
     } catch (error: unknown) {
-      console.log("Failed to reject exam request", error);
-      setToastMessage(
+      setToastMessage("Failed to reject exam request");
+      console.log(
         error instanceof Error ? error.message : "Failed to reject exam request"
       );
     }

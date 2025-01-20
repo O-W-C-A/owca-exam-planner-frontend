@@ -53,6 +53,7 @@ export default function LoginPage() {
         }
       } catch (error) {
         // Error handling if authentication check fails
+        console.log(error);
         setToastMessage({
           message: "Authentication check failed. Please try again.",
           type: "error",
@@ -127,6 +128,7 @@ export default function LoginPage() {
       // Show success toast message
       setToastMessage({ message: "Login successful!", type: "success" });
     } catch (err) {
+      console.log(err);
       // Show error toast message if login fails
       setToastMessage({
         message: "Login failed. Please check your credentials and try again.",

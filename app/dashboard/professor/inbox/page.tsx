@@ -1,12 +1,26 @@
 "use client";
 import { useState } from "react";
 import { useExamRequests } from "@/app/hooks/useExamRequests"; 
-import  ToastMessage  from "@/app/components/ToastMessage";
 import { CourseSelect } from "@/app/components/CourseSelect";
 import { ExamRequestItem } from "@/app/components/ExamRequestItem";
 import { LoadingSpinner } from "@/app/components/LoadingSpinner";
 import { RejectPopup } from "@/app/components/RejectPopup";
 import { ApprovePopup } from "@/app/components/ApprovePopup";
+import api from "@/utils/axiosInstance";
+
+interface RejectData {
+  reason: string;
+}
+
+interface ApproveData {
+  timeStart: string;
+  timeEnd: string;
+  assistantId?: string;
+  type: string;
+  notes?: string;
+  roomsId: number[];
+}
+
 
 export default function ProfessorInbox() {
   const {
@@ -24,15 +38,18 @@ export default function ProfessorInbox() {
   const [showApprovePopup, setShowApprovePopup] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
 
-  const handleExamRequestUpdate = async (action: 'approve' | 'reject', data: any) => {
+  const handleExamRequestUpdate = async (
+    action: 'approve' | 'reject',
+    data: RejectData | ApproveData
+  ) => {
     try {
       if (!selectedRequestId) return;
-
+  
       const response = await api.put(
         `/event/exam-request/${selectedRequestId}/${action}`,
         data
       );
-
+  
       if (response.status === 200) {
         setToastMessage(`Exam request ${action}d successfully`);
         fetchExamRequests(selectedCourse?.id || null);
@@ -44,22 +61,15 @@ export default function ProfessorInbox() {
       );
     }
   };
-
+  
   const handleReject = (reason: string) => {
     handleExamRequestUpdate('reject', { reason });
   };
-
-  const handleApprove = (data: {
-    timeStart: string;
-    timeEnd: string;
-    assistantId?: string;
-    type: string;
-    notes?: string;
-    roomsId: number[];
-  }) => {
+  
+  const handleApprove = (data: ApproveData) => {
     handleExamRequestUpdate('approve', data);
   };
-
+  
   return (
     <div className="h-full flex flex-col p-6">
       {ToastMessage && (

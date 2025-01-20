@@ -26,12 +26,11 @@ const parseEventDate = (date: string, start: string | undefined | null, end: str
 };
 
 export const useExamRequests = () => {
-  // States to manage courses, selected course, and exam requests
-  const [courses, setCourses] = useState<Course[]>([]); // List of courses available for professors
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null); // Selected course for filtering exam requests
-  const [examRequests, setExamRequests] = useState<ExamRequest[]>([]); // List of exam requests based on user role
-  const [isLoading, setIsLoading] = useState(false); // Loading state for fetch operations
-  const [error, setError] = useState<string | null>(null); // Error state for fetch operations
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [examRequests, setExamRequests] = useState<ExamRequest[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch courses for professors when the component mounts
   const fetchCourses = useCallback(async () => {
@@ -39,27 +38,25 @@ export const useExamRequests = () => {
       const userId = Cookies.get("userId");
       const response = await api.get(`/course/professor/${userId}`);
       if (response.status === 200) {
-        setCourses(response.data); // Set courses for the professor
+        setCourses(response.data);
       }
     } catch (error) {
       console.error("Failed to load courses", error);
       setError(error instanceof Error ? error.message : "Failed to load courses");
     }
-  }, []);
+  }, []); // No dependencies, will only run on component mount
 
   // Fetch exam requests based on user role and selected course
   const fetchExamRequests = useCallback(async (courseId: string | null) => {
     try {
-      setIsLoading(true); // Set loading state to true before fetch
+      setIsLoading(true);
       const userId = Cookies.get("userId");
       const userRole = Cookies.get("role");
 
       let endpoint = '';
-      // Determine endpoint based on user role (Student, Student Leader, or Professor)
       if (userRole === UserType.Student || userRole === UserType.StudentLeader) {
         endpoint = `/exam-requests/student/${userId}`;
       } else if (userRole === UserType.Professor) {
-        // Fetch exam requests for a professor, either for all courses or a specific course
         if (courseId === "all" || courseId === null) {
           endpoint = `/exam-requests/professor/${userId}`;
         } else {
@@ -69,48 +66,47 @@ export const useExamRequests = () => {
 
       const response = await api.get(endpoint);
       if (response.status === 200) {
-        // Parse and map exam requests to include start/end times and confirmation status
         const parsedExamRequests = response.data.map((event: ExamRequest) => {
           const { start, end } = parseEventDate(event.date, event.start, event.end);
           return {
             ...event,
             start,
             end,
-            isConfirmed: event.status === "Approved", // Flag if exam request is approved
+            isConfirmed: event.status === "Approved",
           };
         });
-        setExamRequests(parsedExamRequests); // Set the fetched exam requests
+        setExamRequests(parsedExamRequests);
       }
     } catch (error) {
       console.error("Failed to load exam requests", error);
       setError(error instanceof Error ? error.message : "Failed to load exam requests");
     } finally {
-      setIsLoading(false); // Reset loading state after fetch is complete
+      setIsLoading(false);
     }
-  }, [selectedCourse]);
+  }, []); // Now no need to depend on `selectedCourse` here
 
   // Fetch initial data when component mounts for professors
   useEffect(() => {
     const userRole = Cookies.get("role");
     if (userRole === UserType.Professor) {
-      fetchCourses(); // Fetch courses if the user is a professor
+      fetchCourses();
     }
-  }, [fetchCourses]); // No need to depend on `selectedCourse` here
+  }, [fetchCourses]);
 
   // Fetch exam requests whenever the selected course changes
   useEffect(() => {
-    fetchExamRequests(selectedCourse?.id || null); // Fetch exam requests based on the selected course
-  }, [fetchExamRequests, selectedCourse]); // Add `selectedCourse` as dependency
+    fetchExamRequests(selectedCourse?.id || null); // Fetch exam requests based on selected course
+  }, [fetchExamRequests, selectedCourse]); // Keep `selectedCourse` here
 
   return {
-    courses, // List of courses for professors
-    selectedCourse, // The currently selected course
-    setSelectedCourse, // Setter function to change the selected course
-    examRequests, // List of exam requests based on the user role
-    isLoading, // State indicating if data is still loading
-    error, // Error message in case of a failure
-    fetchCourses, // Function to fetch courses for professors
-    fetchExamRequests, // Function to fetch exam requests based on user role
-    setExamRequests, // Setter function to update the exam requests
+    courses,
+    selectedCourse,
+    setSelectedCourse,
+    examRequests,
+    isLoading,
+    error,
+    fetchCourses,
+    fetchExamRequests,
+    setExamRequests,
   };
 };

@@ -70,6 +70,7 @@ export function ExamRequestPopup({
 
           setCourses(response.data);
         } catch (fetchError) {
+          console.log(fetchError); // Log error in console
           setErrorMessage("No courses found."); // Show error via ToastMessage
         }
       };
@@ -112,6 +113,7 @@ export function ExamRequestPopup({
       onClose();
       window.location.reload();
     } catch (submitError) {
+      console.log(submitError); // Log submitError in console
       setErrorMessage("Failed to submit exam request."); // Show error via ToastMessage
     }
   };
