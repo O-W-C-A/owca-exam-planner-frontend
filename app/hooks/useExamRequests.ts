@@ -5,8 +5,27 @@ import { ExamRequest } from "@/types/examRequest";
 import { Course } from "@/types/course";
 import { UserType } from "@/types/userType";
 
+// Utility function to parse event date and time
+const parseEventDate = (date: string, start: string | undefined, end: string | undefined) => {
+  const eventDate = new Date(date);
+  const startDate = new Date(eventDate);
+  const [startHours, startMinutes] = start?.split(":") || [];
+  if (startHours && startMinutes) {
+    startDate.setHours(parseInt(startHours), parseInt(startMinutes));
+  }
+
+  const endDate = new Date(eventDate);
+  const [endHours, endMinutes] = end?.split(":") || [];
+  if (endHours && endMinutes) {
+    endDate.setHours(parseInt(endHours), parseInt(endMinutes));
+  } else {
+    endDate.setHours(startDate.getHours() + 2); // Default duration is 2 hours
+  }
+
+  return { start: startDate, end: endDate };
+};
+
 export const useExamRequests = () => {
-  // State hooks to manage courses, exam requests, and loading/error states
   const [courses, setCourses] = useState<Course[]>([]); // List of courses available to the user (professor only)
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null); // Selected course for filtering exam requests (professor only)
   const [examRequests, setExamRequests] = useState<ExamRequest[]>([]); // List of exam requests for the user
@@ -28,80 +47,33 @@ export const useExamRequests = () => {
   }, []);
 
   // Fetch exam requests based on the user's role (student, student leader, or professor)
-  const fetchExamRequests = useCallback(async () => {
+  const fetchExamRequests = useCallback(async (courseId: string | null) => {
     try {
       setIsLoading(true); // Set loading to true before starting fetch
       const userId = Cookies.get("userId");
       const userRole = Cookies.get("role");
 
-      // For students and student leaders, fetch their specific exam requests
+      let endpoint = '';
       if (userRole === UserType.Student || userRole === UserType.StudentLeader) {
-        const response = await api.get(`/exam-requests/student/${userId}`);
-        if (response.status === 200) {
-          const parsedExamRequests = response.data.map((event: ExamRequest) => {
-            // Parse event times and dates
-            const eventDate = new Date(event.date);
-            const startDate = new Date(eventDate);
-            const [startHours, startMinutes] = event.start?.split(":") || [];
-            if (startHours && startMinutes) {
-              startDate.setHours(parseInt(startHours), parseInt(startMinutes));
-            }
-
-            const endDate = new Date(eventDate);
-            const [endHours, endMinutes] = event.end?.split(":") || [];
-            if (endHours && endMinutes) {
-              endDate.setHours(parseInt(endHours), parseInt(endMinutes));
-            } else {
-              endDate.setHours(startDate.getHours() + 2); // Default duration is 2 hours
-            }
-
-            return {
-              ...event,
-              start: startDate,
-              end: endDate,
-              isConfirmed: event.status === "Approved", // Flag if the exam request is approved
-            };
-          });
-          setExamRequests(parsedExamRequests);
-        }
+        endpoint = `/exam-requests/student/${userId}`;
       } else if (userRole === UserType.Professor) {
-        // Professors fetch exam requests for their courses
-        const courseId = selectedCourse ? selectedCourse.id : null;
-        const endpoint = courseId
+        endpoint = courseId
           ? `/exam-requests/professor/${userId}/course/${courseId}`
           : `/exam-requests/professor/${userId}`;
-        
-        const response = await api.get(endpoint);
+      }
 
-        if (response.status === 200) {
-          const parsedExamRequests = response.data.map((event: ExamRequest) => {
-            // Parse event times and dates for professors' exam requests
-            const eventDate = new Date(event.date);
-            const startDate = new Date(eventDate);
-            const [startHours, startMinutes] = event.start?.split(":") || [];
-            if (startHours && startMinutes) {
-              startDate.setHours(parseInt(startHours), parseInt(startMinutes));
-            }
-
-            const endDate = new Date(eventDate);
-            const [endHours, endMinutes] = event.end?.split(":") || [];
-            if (endHours && endMinutes) {
-              endDate.setHours(parseInt(endHours), parseInt(endMinutes));
-            } else {
-              endDate.setHours(startDate.getHours() + 2); // Default duration is 2 hours
-            }
-
-            return {
-              ...event,
-              start: startDate,
-              end: endDate,
-              isConfirmed: event.status === "Approved", // Flag if the exam request is approved
-            };
-          });
-          setExamRequests(parsedExamRequests);
-        }
-      } else {
-        console.warn("Unrecognized user role");
+      const response = await api.get(endpoint);
+      if (response.status === 200) {
+        const parsedExamRequests = response.data.map((event: ExamRequest) => {
+          const { start, end } = parseEventDate(event.date, event.start, event.end);
+          return {
+            ...event,
+            start,
+            end,
+            isConfirmed: event.status === "Approved", // Flag if the exam request is approved
+          };
+        });
+        setExamRequests(parsedExamRequests);
       }
     } catch (error) {
       console.error("Failed to load exam requests", error);
@@ -114,11 +86,11 @@ export const useExamRequests = () => {
   // Fetch initial data on component mount based on user role
   useEffect(() => {
     const userRole = Cookies.get("role");
-    if (userRole === UserType.Professor || userRole === "professor") {
+    if (userRole === UserType.Professor) {
       fetchCourses(); // Professors fetch courses only
     }
-    fetchExamRequests(); // Always fetch exam requests based on role
-  }, [fetchCourses, fetchExamRequests]);
+    fetchExamRequests(selectedCourse?.id || null); // Always fetch exam requests based on role and selected course
+  }, [fetchCourses, fetchExamRequests, selectedCourse?.id]);
 
   return {
     courses, // List of courses for professors
