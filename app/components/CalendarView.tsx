@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
 import { Calendar, Views } from "react-big-calendar";
 import localizer from "@/utils/localizer"; // Localization utility for date formats
 import { ExamRequest } from "@/types/examRequest"; // Exam request type definition
@@ -10,6 +11,7 @@ import {
 import { View } from "react-big-calendar";
 import Cookies from "js-cookie"; // To fetch user role from cookies
 import { UserType } from "@/types/userType"; // User type enum
+import ToastMessage from "@/app/components/ToastMessage"; // Toast Message component
 
 // Define the component's props interface
 interface CalendarViewProps {
@@ -32,6 +34,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   onSlotSelect,
 }) => {
   const userRole = Cookies.get("role"); // Fetch user role from cookies
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "error" | "success" | "info";
+  } | null>(null);
 
   /**
    * Handles slot selection with validation:
@@ -46,7 +52,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     selectedStart.setHours(0, 0, 0, 0); // Normalize to the start of the selected day
 
     if (selectedStart.getTime() <= now.getTime()) {
-      alert("Cannot select slots on the current or past days.");
+      const errorMessage = "Cannot select slots on the current or past days.";
+        setToast({
+          message: errorMessage,
+          type: "error",
+        });
       return;
     }
 
@@ -57,7 +67,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     });
 
     if (isDayTaken) {
-      alert("There is already an event on this day. Please select another day.");
+      const errorMessage = "There is already an event on this day. Please select another day.";
+        setToast({
+          message: errorMessage,
+          type: "error",
+        });
       return;
     }
 
@@ -65,44 +79,64 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     onSlotSelect(slotInfo);
   };
 
+  // Clear toast
+  const clearToast = () => {
+    setToast(null);
+  };
+
   return (
-    <Calendar
-      localizer={localizer}
-      events={events} // Event data
-      startAccessor="start" // Field for event start time
-      endAccessor="end" // Field for event end time
-      className="h-full"
-      defaultView={Views.MONTH} // Default view is month
-      view={view} // Controlled view
-      onView={setView} // Handle view changes
-      date={date} // Controlled date
-      onNavigate={setDate} // Handle date navigation
-      selectable={userRole !== UserType.Student} // Allow slot selection only for non-student users
-      culture="en-GB" // Set culture for date formats
-      formats={{
-        eventTimeRangeFormat: () => "", // Hide time range in events
-        eventTimeRangeEndFormat: () => "", // Hide end time
-        timeGutterFormat: (date, culture, localizer) =>
-          localizer?.format(date, "HH:mm", culture ?? "en-GB") || "",
-        dayFormat: (date, culture, localizer) =>
-          localizer?.format(date, "EEE", culture ?? "en-GB") || "",
-        dateFormat: (date, culture, localizer) =>
-          localizer?.format(date, "d", culture ?? "en-GB") || "",
-      }}
-      titleAccessor={formatExamRequestTitle} // Custom title accessor
-      onSelectEvent={onEventSelect} // Handle event selection
-      eventPropGetter={(event) => ({
-        style: {
-          backgroundColor: getExamRequestBackgroundColor(event.status), // Event background color based on status
-          color: "white",
-          borderRadius: "5px",
-          border: "none",
-        },
-      })}
-      views={["month", "week", "day"]} // Enable month, week, and day views
-      toolbar={true} // Show toolbar
-      onSelectSlot={(userRole !== UserType.Student && userRole !== UserType.Professor) ? handleSlotSelect : undefined} // Pass slot selection handler only for non-student users
-    />
+    <>
+      {/* ToastMessage notification */}
+      {toast && (
+        <ToastMessage
+          message={toast.message}
+          type={toast.type}
+          onClose={clearToast}
+        />
+      )}
+
+      <Calendar
+        localizer={localizer}
+        events={events} // Event data
+        startAccessor="start" // Field for event start time
+        endAccessor="end" // Field for event end time
+        className="h-full"
+        defaultView={Views.MONTH} // Default view is month
+        view={view} // Controlled view
+        onView={setView} // Handle view changes
+        date={date} // Controlled date
+        onNavigate={setDate} // Handle date navigation
+        selectable={userRole !== UserType.Student} // Allow slot selection only for non-student users
+        culture="en-GB" // Set culture for date formats
+        formats={{
+          eventTimeRangeFormat: () => "", // Hide time range in events
+          eventTimeRangeEndFormat: () => "", // Hide end time
+          timeGutterFormat: (date, culture, localizer) =>
+            localizer?.format(date, "HH:mm", culture ?? "en-GB") || "",
+          dayFormat: (date, culture, localizer) =>
+            localizer?.format(date, "EEE", culture ?? "en-GB") || "",
+          dateFormat: (date, culture, localizer) =>
+            localizer?.format(date, "d", culture ?? "en-GB") || "",
+        }}
+        titleAccessor={formatExamRequestTitle} // Custom title accessor
+        onSelectEvent={onEventSelect} // Handle event selection
+        eventPropGetter={(event) => ({
+          style: {
+            backgroundColor: getExamRequestBackgroundColor(event.status), // Event background color based on status
+            color: "white",
+            borderRadius: "5px",
+            border: "none",
+          },
+        })}
+        views={["month", "week", "day"]} // Enable month, week, and day views
+        toolbar={true} // Show toolbar
+        onSelectSlot={
+          userRole !== UserType.Student && userRole !== UserType.Professor
+            ? handleSlotSelect
+            : undefined
+        } // Pass slot selection handler only for non-student users
+      />
+    </>
   );
 };
 

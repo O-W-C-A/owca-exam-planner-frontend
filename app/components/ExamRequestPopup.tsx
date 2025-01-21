@@ -178,7 +178,7 @@ export function ExamRequestPopup({
                       </option>
                       {courses.map((course) => (
                         <option key={course.id} value={course.id}>
-                          {course.title} {course.numeProfesor} {" "}
+                          {course.title} {course.numeProfesor}{" "}
                           {course.prenumeProfesor}
                         </option>
                       ))}
@@ -216,9 +216,19 @@ export function ExamRequestPopup({
                     id="date"
                     type="date"
                     value={date.toLocaleDateString("en-CA")}
-                    onChange={(e) => setDate(new Date(e.target.value))}
+                    onChange={(e) =>
+                      setDate(
+                        new Date(
+                          new Date(e.target.value).setDate(
+                            new Date(e.target.value).getDate() + 1
+                          )
+                        )
+                      )
+                    }
                     className="w-full px-3 py-2 border rounded-md"
-                    min={new Date().toLocaleDateString("en-CA")}
+                    min={new Date(
+                      new Date().setDate(new Date().getDate() + 1)
+                    ).toLocaleDateString("en-CA")}
                   />
                 </div>
 

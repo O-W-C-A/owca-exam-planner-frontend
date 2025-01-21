@@ -16,23 +16,28 @@ const ToastMessage: React.FC<ToastMessageProps> = ({
   const [show, setShow] = useState(false);
   // State to manage the exiting animation of the toast
   const [isExiting, setIsExiting] = useState(false);
-
+  
   // Effect hook to manage showing and hiding the toast message based on the message prop
   useEffect(() => {
     if (message) {
       setShow(true);
-      setIsExiting(false);
+      setIsExiting(false); // Ensure animation starts from the beginning
 
       // Set a timer to hide the toast after 5 seconds
       const timer = setTimeout(() => {
         setIsExiting(true);
-        setTimeout(() => setShow(false), 500); // Delay hiding for animation duration
-      }, 5000);
+        setTimeout(() => {
+          setShow(false);
+          onClose(); // Call onClose after the animation completes
+        }, 200); // Delay hiding for animation duration
+      }, 2000);
 
       // Cleanup the timer on component unmount or message change
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+      };
     }
-  }, [message]);
+  }, [message, onClose]); // Re-run the effect when message changes
 
   // If no message is shown, return null to prevent rendering
   if (!show) return null;
@@ -67,6 +72,7 @@ const ToastMessage: React.FC<ToastMessageProps> = ({
 
   return (
     <div
+      key={message} // Ensure key changes to reset animation even for same message
       className={`fixed top-4 right-0 z-[9999] p-4 ${
         isExiting ? "animate-slideOut" : "animate-slideIn"
       } w-2/5 max-w-xl`}
@@ -78,7 +84,10 @@ const ToastMessage: React.FC<ToastMessageProps> = ({
         <button
           onClick={() => {
             setIsExiting(true);
-            onClose(); // Call onClose prop when the toast is closed
+            setTimeout(() => {
+              setShow(false); // Hide immediately after clicking X
+              onClose(); // Call onClose when the toast is closed
+            }, 500); // Wait for the slide-out animation to complete
           }}
           className={`ml-4 ${textColor} hover:text-opacity-80 focus:outline-none`}
         >
