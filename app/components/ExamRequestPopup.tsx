@@ -219,7 +219,6 @@ export function ExamRequestPopup({
                     onChange={(e) => setDate(new Date(e.target.value))}
                     className="w-full px-3 py-2 border rounded-md"
                     min={new Date().toLocaleDateString("en-CA")}
-                    disabled
                   />
                 </div>
 
