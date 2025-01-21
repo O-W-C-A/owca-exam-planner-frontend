@@ -15,10 +15,10 @@ export default function LoginPage() {
     password: "",
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [toastMessage, setToastMessage] = useState<{
+  const [toast, setToast] = useState<{
     message: string;
     type: "error" | "success" | "info";
-  } | null>(null); // State for toast message
+  } | null>(null);
   const router = useRouter();
 
   // Function to get the redirect path based on the user's role
@@ -53,8 +53,7 @@ export default function LoginPage() {
         }
       } catch (error) {
         // Error handling if authentication check fails
-        console.log(error);
-        setToastMessage({
+        setToast({
           message: "Authentication check failed. Please try again.",
           type: "error",
         });
@@ -104,6 +103,7 @@ export default function LoginPage() {
         secure: true,
       };
 
+      // Set authentication-related cookies
       Cookies.set("authToken", authData.token, cookieOptions);
       Cookies.set("userId", String(authData.userId), cookieOptions);
       Cookies.set("role", actualRole, cookieOptions);
@@ -126,11 +126,10 @@ export default function LoginPage() {
       router.push(redirectPath);
 
       // Show success toast message
-      setToastMessage({ message: "Login successful!", type: "success" });
+      setToast({ message: "Login successful!", type: "success" });
     } catch (err) {
-      console.log(err);
-      // Show error toast message if login fails
-      setToastMessage({
+      // Error handling: show error toast message
+      setToast({
         message: "Login failed. Please check your credentials and try again.",
         type: "error",
       });
@@ -148,13 +147,17 @@ export default function LoginPage() {
     );
   }
 
+  // Clear toast message
+  const clearToast = () => setToast(null);
+
   return (
     <div>
-      {toastMessage && (
+      {/* ToastMessage notification */}
+      {toast && (
         <ToastMessage
-          message={toastMessage.message}
-          type={toastMessage.type}
-          onClose={() => setToastMessage(null)}
+          message={toast.message}
+          type={toast.type}
+          onClose={clearToast}
         />
       )}
       <LoginForm

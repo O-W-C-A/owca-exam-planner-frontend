@@ -5,75 +5,102 @@ import { ExamRequest } from "@/types/examRequest";
 import { ExamRequestPopup } from "@/app/components/ExamRequestPopup";
 import ExamRequestDetailsModal from "@/app/components/ExamRequestDetailsModal";
 import CalendarView from "@/app/components/CalendarView";
-import ToastMessageError from "@/app/components/ToastMessage";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import Cookies from "js-cookie";
 import { View } from "react-big-calendar";
 import { UserType } from "@/types/userType";
+import ToastMessage from "@/app/components/ToastMessage";
 
 const StudentLeaderCalendar: React.FC = () => {
-  // State for managing modal visibility and selected event
+  // State for managing toast notifications
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "error" | "success" | "info";
+  } | null>(null);
+
+  // State for managing modal visibility and selected event details
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<ExamRequest | null>(null);
+
+  // State for managing the suggestion popup and selected date
   const [showSuggestionPopup, setShowSuggestionPopup] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null); // Track selected date for the exam request
-  const { examRequests, error } = useExamRequests(); // Fetch exam requests
-  const [view, setView] = useState<View>("month"); // Track calendar view (month, week, etc.)
-  const [date, setDate] = useState<Date>(new Date()); // Track current date for the calendar view
-  const userRole = Cookies.get("role"); // Retrieve the user role from cookies
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  // Handle slot selection from the calendar view
+  // Fetch exam requests and handle errors
+  const { examRequests, error } = useExamRequests();
+
+  // State for managing the calendar view and current date
+  const [view, setView] = useState<View>("month");
+  const [date, setDate] = useState<Date>(new Date());
+
+  // Retrieve the user role from cookies
+  const userRole = Cookies.get("role");
+
+  // Handle slot selection (when a user clicks on an empty time slot in the calendar)
   const handleSelectSlot = (slotInfo: { start: Date; end: Date }) => {
-    setSelectedDate(slotInfo.start); // Store the selected start date of the slot
-    setShowSuggestionPopup(true); // Open the suggestion popup to create a new exam request
+    setSelectedDate(slotInfo.start);
+    setShowSuggestionPopup(true);
   };
 
-  // Handle event selection (opens the details modal for an exam request)
+  // Handle event selection (when a user clicks on an existing event in the calendar)
   const handleSelectEvent = (event: ExamRequest) => {
-    setSelectedEvent(event); // Set the selected event details
-    setIsModalOpen(true); // Open the event details modal
+    setSelectedEvent(event);
+    setIsModalOpen(true);
   };
 
-  // Close the modal
+  // Close the details modal
   const handleCloseModal = () => {
-    setIsModalOpen(false); // Close the modal
+    setIsModalOpen(false);
   };
+
+  // Clear toast notifications
+  const clearToast = () => setToast(null);
 
   return (
     <div className="h-full flex flex-col">
-      {/* Display error message if an error occurs while fetching exam requests */}
-      {error && <ToastMessageError message={error} type="error" />}
-
-      <div className="flex-1 min-h-0">
-        {/* Calendar view to display exam requests and handle slot/event selection */}
-        <CalendarView
-          events={examRequests} // Pass in fetched exam requests as events
-          view={view} // Current calendar view (month, week, etc.)
-          setView={setView} // Function to change the calendar view
-          date={date} // Current date to display in the calendar
-          setDate={setDate} // Function to set the current date
-          onEventSelect={handleSelectEvent} // Event handler for selecting an event
-          onSlotSelect={handleSelectSlot} // Event handler for selecting a slot
-        />
-      </div>
-
-      {/* Modal for viewing details of the selected exam request */}
-      {isModalOpen && selectedEvent && (
-        <ExamRequestDetailsModal
-          examRequest={selectedEvent} // Pass the selected event's details
-          onClose={handleCloseModal} // Close the modal when triggered
-          onApprove={() => {}} // Placeholder function for approving (can be implemented later)
-          onReject={() => {}} // Placeholder function for rejecting (can be implemented later)
-          isProfessor={userRole === UserType.Professor} // Determine if the user is a professor
+      {/* Display toast notifications if any */}
+      {toast && (
+        <ToastMessage
+          message={toast.message}
+          type={toast.type}
+          onClose={clearToast}
         />
       )}
 
-      {/* Popup for submitting an exam request, shown when a date is selected */}
+      <div className="flex-1 min-h-0">
+        {/* Render the calendar view with event and slot handlers */}
+        <CalendarView
+          events={examRequests}
+          view={view}
+          setView={setView}
+          date={date}
+          setDate={setDate}
+          onEventSelect={handleSelectEvent}
+          onSlotSelect={handleSelectSlot}
+        />
+      </div>
+
+      {/* Render the details modal if an event is selected */}
+      {isModalOpen && selectedEvent && (
+        <ExamRequestDetailsModal
+          examRequest={selectedEvent}
+          onClose={handleCloseModal}
+          onApprove={() => {
+            setToast({ message: "Approved successfully!", type: "success" });
+          }}
+          onReject={() => {
+            setToast({ message: "Rejected successfully!", type: "error" });
+          }}
+          isProfessor={userRole === UserType.Professor}
+        />
+      )}
+
+      {/* Render the suggestion popup if a date is selected */}
       {showSuggestionPopup && selectedDate && (
         <ExamRequestPopup
-          isOpen={showSuggestionPopup} // Control the visibility of the popup
-          selectedDate={selectedDate} // Pass the selected date to the popup
-          onClose={() => setShowSuggestionPopup(false)} // Close the popup when triggered
+          isOpen={showSuggestionPopup}
+          selectedDate={selectedDate}
+          onClose={() => setShowSuggestionPopup(false)}
         />
       )}
     </div>

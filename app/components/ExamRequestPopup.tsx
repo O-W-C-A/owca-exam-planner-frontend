@@ -31,7 +31,10 @@ export function ExamRequestPopup({
     selectedDate ? new Date(selectedDate) : new Date()
   );
   const [notes, setNotes] = useState(initialNotes);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null); // Error message state for Toast
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "error" | "success" | "info";
+  } | null>(null);
   const [courses, setCourses] = useState<
     {
       id: string;
@@ -60,7 +63,10 @@ export function ExamRequestPopup({
 
           // Ensure userId is available in cookies
           if (!userIdCookie) {
-            setErrorMessage("User ID not found in cookies."); // Show error via ToastMessage
+            setToast({
+              message: "User ID not found in cookies.",
+              type: "error",
+            });
             return;
           }
 
@@ -70,8 +76,10 @@ export function ExamRequestPopup({
 
           setCourses(response.data);
         } catch (fetchError) {
-          console.log(fetchError); // Log error in console
-          setErrorMessage("No courses found."); // Show error via ToastMessage
+          setToast({
+            message: "Failed to fetch courses. Please try again.",
+            type: "error",
+          });
         }
       };
       fetchCourses();
@@ -83,9 +91,11 @@ export function ExamRequestPopup({
 
   // Handle submitting the exam request (either for a new request or an update)
   const handleExamRequest = async () => {
-    // Ensure a course is selected
     if (!selectedCourseId) {
-      setErrorMessage("Please select a course."); // Show error via ToastMessage
+      setToast({
+        message: "Please select a course.",
+        type: "info",
+      });
       return;
     }
 
@@ -96,7 +106,7 @@ export function ExamRequestPopup({
       const examRequest = {
         courseId: selectedCourseId,
         groupId: groupId,
-        examDate: formattedDate, // Send the date in ISO format
+        examDate: formattedDate,
         details: notes.trim(),
       };
 
@@ -107,14 +117,15 @@ export function ExamRequestPopup({
         await api.post("/event/exam-request", examRequest);
       }
 
-      // Clear inputs and close the modal after successful request
-      setNotes("");
-      setErrorMessage(null); // Reset error message
-      onClose();
-      window.location.reload();
+      setNotes(""); // Clear the notes field
+      clearToast(); // Reset toast notifications
+      onClose(); // Close the modal
+      window.location.reload(); // Refresh the page to reflect changes
     } catch (submitError) {
-      console.log(submitError); // Log submitError in console
-      setErrorMessage("Failed to submit exam request."); // Show error via ToastMessage
+      setToast({
+        message: "Failed to submit exam request. Please try again.",
+        type: "error",
+      });
     }
   };
 
@@ -123,14 +134,17 @@ export function ExamRequestPopup({
     onClose();
   };
 
+  // Clear toast
+  const clearToast = () => setToast(null);
+
   return (
     <>
-      {/* Show error via ToastMessage if errorMessage is set */}
-      {errorMessage && (
+      {/* ToastMessage notification */}
+      {toast && (
         <ToastMessage
-          message={errorMessage}
-          type="error"
-          onClose={() => setErrorMessage(null)}
+          message={toast.message}
+          type={toast.type}
+          onClose={clearToast}
         />
       )}
 
@@ -164,7 +178,7 @@ export function ExamRequestPopup({
                       </option>
                       {courses.map((course) => (
                         <option key={course.id} value={course.id}>
-                          {course.title} {course.numeProfesor}{" "}
+                          {course.title} {course.numeProfesor} {" "}
                           {course.prenumeProfesor}
                         </option>
                       ))}
@@ -223,7 +237,7 @@ export function ExamRequestPopup({
                     onChange={(e) => setNotes(e.target.value)}
                     className="w-full px-3 py-2 border rounded-md min-h-[100px] max-h-[150px]"
                     placeholder="Add any additional details..."
-                    maxLength={120} // Limit to 120 characters
+                    maxLength={120}
                   />
                   <p className="text-sm text-gray-500 mt-1">
                     {notes.length} / 120 characters

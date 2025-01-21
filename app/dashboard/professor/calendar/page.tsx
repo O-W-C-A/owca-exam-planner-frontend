@@ -17,6 +17,7 @@ import Select from "react-select"; // Dropdown component for course selection
 import { ExamType } from "@/types/examType"; // Type for exam details
 import { ExamRequest } from "@/types/examRequest"; // Type for exam requests
 import { UserType } from "@/types/userType"; // Enum for user roles
+import ToastMessage from "@/app/components/ToastMessage";
 
 const ProfessorCalendar: React.FC = () => {
   // Access the current user from context
@@ -28,9 +29,12 @@ const ProfessorCalendar: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<ExamRequest | null>(null); // Currently selected calendar event
   const [showRejectPopup, setShowRejectPopup] = useState(false); // Controls visibility of reject popup
   const [showApprovePopup, setShowApprovePopup] = useState(false); // Controls visibility of approve popup
-  const [ToastMessage, setToastMessage] = useState<string | null>(null); // Message to display in ToastMessage notifications
   const [isModalOpen, setIsModalOpen] = useState(false); // Controls visibility of exam request modal
   const userRole = Cookies.get("role"); // Get user role from cookies
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "error" | "success" | "info";
+  } | null>(null);
 
   // Destructure properties from custom hook
   const {
@@ -105,18 +109,19 @@ const ProfessorCalendar: React.FC = () => {
         data
       );
       if (response.status === 200) {
-        setToastMessage("Exam request approved successfully");
+        setToast({ message: "Exam request approved successfully", type: "success" });
         setShowApprovePopup(false);
         setIsModalOpen(false);
         fetchExamRequests(null);
       }
     } catch (error: unknown) {
-      console.log("Failed to approve exam request", error);
-      setToastMessage(
-        error instanceof Error
-          ? error.message
-          : "Failed to approve exam request"
-      );
+      setToast({
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to approve exam request",
+        type: "error",
+      });
     }
   };
 
@@ -129,24 +134,31 @@ const ProfessorCalendar: React.FC = () => {
         { reason }
       );
       if (response.status === 200) {
-        setToastMessage("Exam request rejected successfully");
+        setToast({ message: "Exam request rejected successfully", type: "success" });
         setShowRejectPopup(false);
         setIsModalOpen(false);
         fetchExamRequests(null);
       }
     } catch (error: unknown) {
-      setToastMessage("Failed to reject exam request");
-      console.log(
-        error instanceof Error ? error.message : "Failed to reject exam request"
-      );
+      setToast({
+        message: "Failed to reject exam request",
+        type: "error",
+      });
     }
   };
+
+  // Clear toast
+  const clearToast = () => setToast(null);
 
   return (
     <div className="h-full flex flex-col">
       {/* ToastMessage notification */}
-      {ToastMessage && (
-        <ToastMessage message={ToastMessage} onClose={() => setToastMessage(null)} />
+      {toast && (
+        <ToastMessage
+          message={toast.message}
+          type={toast.type}
+          onClose={clearToast}
+        />
       )}
 
       {/* Course selection dropdown */}
