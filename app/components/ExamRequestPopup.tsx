@@ -76,6 +76,7 @@ export function ExamRequestPopup({
 
           setCourses(response.data);
         } catch (fetchError) {
+          console.log(fetchError);
           setToast({
             message: "Failed to fetch courses. Please try again.",
             type: "error",
@@ -122,6 +123,7 @@ export function ExamRequestPopup({
       onClose(); // Close the modal
       window.location.reload(); // Refresh the page to reflect changes
     } catch (submitError) {
+      console.log(submitError);
       setToast({
         message: "Failed to submit exam request. Please try again.",
         type: "error",

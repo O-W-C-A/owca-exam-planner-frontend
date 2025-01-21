@@ -11,7 +11,7 @@ const ExamRequestCard: React.FC<ExamRequestCardProps> = ({
   request,
   onUpdateClick,
 }) => {
-  const { title, date, start, end, status, details } = request;
+  const { title, date, status, details } = request;
   const { professor, type, notes, rooms } = details;
 
   const renderRooms = () => {

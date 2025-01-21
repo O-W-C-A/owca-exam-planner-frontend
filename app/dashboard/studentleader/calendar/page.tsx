@@ -27,7 +27,7 @@ const StudentLeaderCalendar: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   // Fetch exam requests and handle errors
-  const { examRequests, error } = useExamRequests();
+  const { examRequests } = useExamRequests();
 
   // State for managing the calendar view and current date
   const [view, setView] = useState<View>("month");

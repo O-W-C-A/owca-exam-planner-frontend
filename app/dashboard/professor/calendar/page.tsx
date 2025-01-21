@@ -140,6 +140,7 @@ const ProfessorCalendar: React.FC = () => {
         fetchExamRequests(null);
       }
     } catch (error: unknown) {
+      console.log(error);
       setToast({
         message: "Failed to reject exam request",
         type: "error",
