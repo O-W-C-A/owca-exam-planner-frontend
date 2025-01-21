@@ -5,7 +5,7 @@ import { ExamRequest } from "@/types/examRequest";
 import { ExamRequestPopup } from "@/app/components/ExamRequestPopup";
 import ExamRequestDetailsModal from "@/app/components/ExamRequestDetailsModal";
 import CalendarView from "@/app/components/CalendarView";
-import ToastError from "@/app/components/ToastError";
+import ToastMessageError from "@/app/components/ToastMessage";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import Cookies from "js-cookie";
 import { View } from "react-big-calendar";
@@ -42,7 +42,7 @@ const StudentLeaderCalendar: React.FC = () => {
   return (
     <div className="h-full flex flex-col">
       {/* Display error message if an error occurs while fetching exam requests */}
-      {error && <ToastError message={error} type="error" />}
+      {error && <ToastMessageError message={error} type="error" />}
 
       <div className="flex-1 min-h-0">
         {/* Calendar view to display exam requests and handle slot/event selection */}

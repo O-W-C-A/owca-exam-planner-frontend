@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 
-interface ToastErrorProps {
+interface ToastMessageProps {
   message: string;
-  type?: "error" | "success" | "info"; // You can add more types as needed
+  type?: "error" | "success" | "info";
+  onClose: () => void;
 }
 
-const ToastError: React.FC<ToastErrorProps> = ({ message, type = "error" }) => {
+const ToastMessage: React.FC<ToastMessageProps> = ({ message, type = "error" }) => {
   const [show, setShow] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
 
@@ -23,7 +24,7 @@ const ToastError: React.FC<ToastErrorProps> = ({ message, type = "error" }) => {
 
   if (!show) return null;
 
-  const getToastStyle = () => {
+  const getToastMessageStyle = () => {
     switch (type) {
       case "success":
         return {
@@ -47,7 +48,7 @@ const ToastError: React.FC<ToastErrorProps> = ({ message, type = "error" }) => {
     }
   };
 
-  const { bgColor, textColor, borderColor } = getToastStyle();
+  const { bgColor, textColor, borderColor } = getToastMessageStyle();
 
   return (
     <div
@@ -68,4 +69,4 @@ const ToastError: React.FC<ToastErrorProps> = ({ message, type = "error" }) => {
   );
 };
 
-export default ToastError;
+export default ToastMessage;

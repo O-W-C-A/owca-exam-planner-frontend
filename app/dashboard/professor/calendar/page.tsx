@@ -3,7 +3,7 @@
 
 // Import necessary libraries and components
 import React, { useState, useEffect } from "react";
-import { Toast } from "@/app/components/Toast"; // Toast notifications for user feedback
+import { ToastMessage } from "@/app/components/ToastMessage"; // ToastMessage notifications for user feedback
 import { RejectPopup } from "@/app/components/RejectPopup"; // Popup for rejecting an exam request
 import { ApprovePopup } from "@/app/components/ApprovePopup"; // Popup for approving an exam request
 import { useUser } from "@/contexts/UserContext"; // Context hook to access user details
@@ -29,7 +29,7 @@ const ProfessorCalendar: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<ExamRequest | null>(null); // Currently selected calendar event
   const [showRejectPopup, setShowRejectPopup] = useState(false); // Controls visibility of reject popup
   const [showApprovePopup, setShowApprovePopup] = useState(false); // Controls visibility of approve popup
-  const [toastMessage, setToastMessage] = useState<string | null>(null); // Message to display in toast notifications
+  const [ToastMessage, setToastMessage] = useState<string | null>(null); // Message to display in ToastMessage notifications
   const [isModalOpen, setIsModalOpen] = useState(false); // Controls visibility of exam request modal
   const userRole = Cookies.get("role"); // Get user role from cookies
 
@@ -145,9 +145,9 @@ const ProfessorCalendar: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Toast notification */}
-      {toastMessage && (
-        <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
+      {/* ToastMessage notification */}
+      {ToastMessage && (
+        <ToastMessage message={ToastMessage} onClose={() => setToastMessage(null)} />
       )}
 
       {/* Course selection dropdown */}

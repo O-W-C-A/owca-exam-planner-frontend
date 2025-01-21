@@ -1,7 +1,5 @@
 export const formatDateTime = (
   date: string,
-  start: string | null,
-  end: string | null
 ): string => {
   const eventDate = new Date(date);
   const dateStr = eventDate.toLocaleDateString("en-GB", {
@@ -10,9 +8,7 @@ export const formatDateTime = (
     year: "numeric",
   });
 
-  if (start && end) {
-    return `${dateStr} (${start} - ${end})`;
-  }
+  // If start and end are provided, return just the date without appending the time
   return dateStr;
 };
 

@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "@/utils/axiosInstance";
 import Cookies from "js-cookie";
-import { Toast } from "@/app/components/Toast";
+import { ToastMessage } from "@/app/components/ToastMessage";
 import { ExamRequestPopup } from "@/app/components/ExamRequestPopup";
 import ExamRequestList from "@/app/components/ExamRequestList";
 import { ExamRequest, ExamRequestFormData } from "@/types/examRequest";
@@ -11,7 +11,7 @@ export default function StudentLeaderInbox() {
   const [examRequests, setExamRequests] = useState<ExamRequest[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [ToastMessage, setToastMessage] = useState<string | null>(null);
   const [showUpdatePopup, setShowUpdatePopup] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<ExamRequest | null>(null);
 
@@ -67,8 +67,8 @@ export default function StudentLeaderInbox() {
 
   return (
     <div className="h-full flex flex-col p-6">
-      {toastMessage && (
-        <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
+      {ToastMessage && (
+        <ToastMessage message={ToastMessage} onClose={() => setToastMessage(null)} />
       )}
       <div className="flex-1 overflow-auto">
         <ExamRequestList

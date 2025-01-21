@@ -4,7 +4,7 @@ import { useExamRequests } from "@/app/hooks/useExamRequests"; // Custom hook to
 import { ExamRequest } from "@/types/examRequest"; // Exam request type definition
 import ExamRequestDetailsModal from "@/app/components/ExamRequestDetailsModal"; // Modal for exam request details
 import CalendarView from "@/app/components/CalendarView"; // Calendar component
-import ToastError from "@/app/components/ToastError"; // Error toast component
+import ToastMessageError from "@/app/components/ToastMessage"; // Error ToastMessage component
 import "react-big-calendar/lib/css/react-big-calendar.css"; // Calendar styles
 import Cookies from "js-cookie"; // For retrieving user role
 import { View } from "react-big-calendar"; // Calendar view type
@@ -40,8 +40,8 @@ const StudentCalendar: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Error Toast */}
-      {error && <ToastError message={error} type="error" />}
+      {/* Error ToastMessage */}
+      {error && <ToastMessageError message={error} type="error" />}
 
       <div className="flex-1 min-h-0">
         {/* Calendar View */}

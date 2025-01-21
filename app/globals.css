@@ -13,7 +13,7 @@ body {
   font-family: "Noto Sans", Arial, sans-serif;
 }
 
-/* Error Toast animations */
+/* Error ToastMessage animations */
 @keyframes slideIn {
   0% {
     transform: translateX(100%); /* Start off-screen to the right */
