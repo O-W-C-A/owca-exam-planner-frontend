@@ -24,7 +24,7 @@ export default function StudentLeaderInbox() {
     try {
       setIsLoading(true); // Set loading state to true before API request
       const userId = Cookies.get("userId"); // Get user ID from cookies
-      const response = await api.get(`/exam-requests/student/${userId}`); // Fetch exam requests for the user
+      const response = await api.get(`/events/student/${userId}`); // Fetch exam requests for the user
 
       // If the request is successful, update the state with the fetched exam requests
       if (response.status === 200) {
@@ -115,7 +115,6 @@ export default function StudentLeaderInbox() {
           selectedDate={new Date(selectedRequest.date)} // Set the initial date from the selected request
           onSubmit={handleUpdate} // Submit the update when the form is submitted
           initialNotes={selectedRequest.details.notes || ""} // Initial notes for the request
-          isUpdate={true} // Indicate this is an update operation
           courseName={selectedRequest.title} // Set the course name in the popup
           examId={selectedRequest.id} // Set the exam ID for the request
         />

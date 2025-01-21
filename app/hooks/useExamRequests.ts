@@ -55,12 +55,12 @@ export const useExamRequests = () => {
 
       let endpoint = '';
       if (userRole === UserType.Student || userRole === UserType.StudentLeader) {
-        endpoint = `/exam-requests/student/${userId}`;
+        endpoint = `/events/student/${userId}`;
       } else if (userRole === UserType.Professor) {
         if (courseId === "all" || courseId === null) {
-          endpoint = `/exam-requests/professor/${userId}`;
+          endpoint = `/event/exam-request/professor/${userId}`;
         } else {
-          endpoint = `/exam-requests/professor/${userId}/course/${courseId}`;
+          endpoint = `/event/exam-request/professor/${userId}/course/${courseId}`;
         }
       }
 
