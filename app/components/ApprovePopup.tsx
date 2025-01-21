@@ -93,8 +93,8 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
 
   const isFormValid = timeStart && 
                      timeEnd && 
-                     selectedAssistant && 
                      examType && 
+                     selectedAssistant && 
                      selectedRooms.length > 0;
 
   if (!isOpen) return null;
