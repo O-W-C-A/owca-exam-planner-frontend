@@ -59,7 +59,8 @@ describe('Testare Formular de Login', () => {
 cy.contains('C105 (C)') // Selectează opțiunea care apare
   .click(); // Selectează opțiunea dorită
 
-  
+    cy.get('#assistant > .css-13cymwt-control').click();
+    cy.get('#react-select-7-option-0').click();
     cy.get('#notes').type('Aprobat');
     cy.get('.fixed > .bg-white > .flex > .bg-green-500').click();
 
@@ -73,6 +74,21 @@ cy.contains('C105 (C)') // Selectează opțiunea care apare
     
     cy.url().should('include', '/dashboard');
     cy.wait(1000);
+
+    cy.get('.rbc-event-content').click();
+    cy.wait(2000);
+    cy.get('.bg-gray-500').click();
+
+    cy.get('button').contains('Logout').click();
+    cy.get('button').contains('Yes').click();
+    cy.wait(1000);
+    cy.get('input[name="email"]').type('john.doe@student.usm.ro');
+    cy.get('input[name="password"]').type('hashedpassword3');
+    cy.get('button').contains('Submit').click();
+    
+    cy.url().should('include', '/dashboard');
+    cy.wait(1000);
+    cy.get('.rbc-event-content').click();
   });
 
   // it('Autentificare reușită pentru Profesor - Professors1@university.edu', () => {
