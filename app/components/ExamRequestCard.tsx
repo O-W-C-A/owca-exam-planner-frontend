@@ -7,7 +7,10 @@ type ExamRequestCardProps = {
   onUpdateClick: (request: ExamRequest) => void;
 };
 
-const ExamRequestCard: React.FC<ExamRequestCardProps> = ({ request, onUpdateClick }) => {
+const ExamRequestCard: React.FC<ExamRequestCardProps> = ({
+  request,
+  onUpdateClick,
+}) => {
   const { title, date, start, end, status, details } = request;
   const { professor, type, notes, rooms } = details;
 
@@ -18,7 +21,8 @@ const ExamRequestCard: React.FC<ExamRequestCardProps> = ({ request, onUpdateClic
 
     return (
       <p className="mb-1">
-        Rooms: {rooms.map((room) => `${room.name} (${room.location})`).join(", ")}
+        Rooms:{" "}
+        {rooms.map((room) => `${room.name} (${room.location})`).join(", ")}
       </p>
     );
   };
@@ -32,12 +36,14 @@ const ExamRequestCard: React.FC<ExamRequestCardProps> = ({ request, onUpdateClic
             Professor: {professor.firstName} {professor.lastName}
           </p>
         </div>
-        <span className={`px-2 py-1 rounded text-sm ${getStatusStyles(status)}`}>
+        <span
+          className={`px-2 py-1 rounded text-sm ${getStatusStyles(status)}`}
+        >
           {status}
         </span>
       </div>
       <div className="text-sm text-gray-600">
-        <p className="mb-1">Date: {formatDateTime(date, start, end)}</p>
+        <p className="mb-1">Date: {formatDateTime(date)}</p>
         {type && <p className="mb-1">Type: {type}</p>}
         {notes && <p className="mb-1">Details: {notes}</p>}
         {renderRooms()}

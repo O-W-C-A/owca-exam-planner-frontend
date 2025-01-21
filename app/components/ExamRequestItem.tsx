@@ -19,9 +19,7 @@ export function ExamRequestItem({
       <div className="flex justify-between items-start mb-2">
         <div>
           <h3 className="font-medium text-lg">{request.title}</h3>
-          <p className="text-gray-600">
-            Group: {request.details.group}
-          </p>
+          <p className="text-gray-600">Group: {request.details.group}</p>
         </div>
         <span
           className={`px-2 py-1 rounded text-sm ${getStatusStyles(
@@ -32,10 +30,7 @@ export function ExamRequestItem({
         </span>
       </div>
       <div className="text-sm text-gray-600">
-        <p className="mb-1">
-          Date:{" "}
-          {formatDateTime(request.date, request.start, request.end)}
-        </p>
+        <p className="mb-1">Date: {formatDateTime(request.date)}</p>
         {request.details.type && (
           <p className="mb-1">Type: {request.details.type}</p>
         )}
