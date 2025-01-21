@@ -1,4 +1,3 @@
-"use client";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./card";
 import api from "@/utils/axiosInstance";
@@ -12,18 +11,15 @@ type ExamRequestProps = Readonly<{
   selectedDate: Date | null;
   onSubmit?: (data: { date: Date; notes: string; courseId: string }) => void;
   initialNotes?: string;
-  isUpdate?: boolean;
+  examId?: string; // Removed isUpdate flag
   courseName?: string;
-  examId?: string;
 }>;
 
-// The main functional component for the exam request popup
 export function ExamRequestPopup({
   isOpen,
   onClose,
   selectedDate,
   initialNotes = "",
-  isUpdate = false,
   courseName,
   examId,
 }: ExamRequestProps) {
@@ -43,7 +39,7 @@ export function ExamRequestPopup({
       prenumeProfesor: string;
     }[]
   >([]);
-  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const [selectedCourseId, setSelectedCourseId] = useState<string>(examId || "");
 
   // Update date when selectedDate prop changes
   useEffect(() => {
@@ -54,9 +50,9 @@ export function ExamRequestPopup({
     }
   }, [selectedDate]);
 
-  // Fetch courses when not in update mode
+  // Fetch courses if no examId (for new request)
   useEffect(() => {
-    if (!isUpdate) {
+    if (!examId) {
       const fetchCourses = async () => {
         try {
           const userIdCookie = Cookies.get("userId");
@@ -84,14 +80,11 @@ export function ExamRequestPopup({
         }
       };
       fetchCourses();
-    } else if (examId && courseName) {
-      // Pre-select the course when updating
-      setSelectedCourseId(examId);
     }
-  }, [isUpdate, examId, courseName]);
+  }, [examId]);
 
-  // Handle submitting the exam request (either for a new request or an update)
-  const handleExamRequest = async () => {
+  // Handle creating a new exam request
+  const handleCreateExamRequest = async () => {
     if (!selectedCourseId) {
       setToast({
         message: "Please select a course.",
@@ -111,12 +104,7 @@ export function ExamRequestPopup({
         details: notes.trim(),
       };
 
-      // If updating, use PUT method, else use POST
-      if (isUpdate && examId) {
-        await api.put(`/event/exam-request/${examId}/pending`, examRequest);
-      } else {
-        await api.post("/event/exam-request", examRequest);
-      }
+      await api.post("/event/exam-request", examRequest);
 
       setNotes(""); // Clear the notes field
       clearToast(); // Reset toast notifications
@@ -126,6 +114,44 @@ export function ExamRequestPopup({
       console.log(submitError);
       setToast({
         message: "Failed to submit exam request. Please try again.",
+        type: "error",
+      });
+    }
+  };
+
+  // Handle updating an existing exam request
+  const handleUpdateExamRequest = async () => {
+    if (!selectedCourseId) {
+      setToast({
+        message: "Please select a course.",
+        type: "info",
+      });
+      return;
+    }
+
+    try {
+      const groupId = Cookies.get("groupId");
+      const formattedDate = date.toISOString(); // Ensure the date is in ISO format
+
+      const examRequest = {
+        courseId: selectedCourseId,
+        groupId: groupId,
+        examDate: formattedDate,
+        details: notes.trim(),
+      };
+
+      if (examId) {
+        await api.put(`/event/exam-request/${examId}/pending`, examRequest);
+      }
+
+      setNotes(""); // Clear the notes field
+      clearToast(); // Reset toast notifications
+      onClose(); // Close the modal
+      window.location.reload(); // Refresh the page to reflect changes
+    } catch (submitError) {
+      console.log(submitError);
+      setToast({
+        message: "Failed to update exam request. Please try again.",
         type: "error",
       });
     }
@@ -155,13 +181,13 @@ export function ExamRequestPopup({
           <Card className="w-full max-w-md">
             <CardHeader>
               <CardTitle>
-                {isUpdate ? "Update Exam Request" : "Request Exam Date"}
+                {examId ? "Update Exam Request" : "Request Exam Date"}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {/* Course selection for new requests */}
-                {!isUpdate && (
+                {!examId && (
                   <div>
                     <label
                       htmlFor="course"
@@ -189,7 +215,7 @@ export function ExamRequestPopup({
                 )}
 
                 {/* If it's an update, show the course name as readonly */}
-                {isUpdate && (
+                {examId && (
                   <div>
                     <label
                       htmlFor="course"
@@ -222,7 +248,7 @@ export function ExamRequestPopup({
                       setDate(
                         new Date(
                           new Date(e.target.value).setDate(
-                            new Date(e.target.value).getDate() + 1
+                            new Date(e.target.value).getDate()
                           )
                         )
                       )
@@ -264,10 +290,10 @@ export function ExamRequestPopup({
                     Cancel
                   </button>
                   <button
-                    onClick={handleExamRequest}
+                    onClick={examId ? handleUpdateExamRequest : handleCreateExamRequest}
                     className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                   >
-                    {isUpdate ? "Update" : "Submit"}
+                    {examId ? "Update" : "Submit"}
                   </button>
                 </div>
               </div>

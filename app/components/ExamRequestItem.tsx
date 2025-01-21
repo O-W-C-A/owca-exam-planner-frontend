@@ -2,10 +2,10 @@ import { ExamRequest } from "@/types/examRequest";
 import { formatDateTime, getStatusStyles } from "@/utils/helpers";
 
 interface ExamRequestItemProps {
-  request: ExamRequest;
-  setSelectedRequestId: (id: string) => void;
-  setShowRejectPopup: (show: boolean) => void;
-  setShowApprovePopup: (show: boolean) => void;
+  readonly request: ExamRequest;
+  readonly setSelectedRequestId: (id: string) => void;
+  readonly setShowRejectPopup: (show: boolean) => void;
+  readonly setShowApprovePopup: (show: boolean) => void;
 }
 
 export function ExamRequestItem({

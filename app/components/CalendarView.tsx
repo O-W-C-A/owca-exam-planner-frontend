@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Calendar, Views } from "react-big-calendar";
+import { Calendar, Views, View } from "react-big-calendar";
 import localizer from "@/utils/localizer"; // Localization utility for date formats
 import { ExamRequest } from "@/types/examRequest"; // Exam request type definition
 import {
@@ -8,7 +8,6 @@ import {
   getExamRequestBackgroundColor,
 } from "@/utils/examRequestUtils"; // Utility functions for event titles and styles
 
-import { View } from "react-big-calendar";
 import Cookies from "js-cookie"; // To fetch user role from cookies
 import { UserType } from "@/types/userType"; // User type enum
 import ToastMessage from "@/app/components/ToastMessage"; // Toast Message component

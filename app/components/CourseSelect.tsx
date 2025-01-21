@@ -2,10 +2,10 @@ import Select from "react-select";
 import { Course } from "@/types/course";
 
 interface CourseSelectProps {
-  courses: Course[];
-  selectedCourse: Course | null;
-  setSelectedCourse: (course: Course | null) => void;
-  isLoading: boolean;
+  readonly courses: Course[];
+  readonly selectedCourse: Course | null;
+  readonly setSelectedCourse: (course: Course | null) => void;
+  readonly isLoading: boolean;
 }
 
 export function CourseSelect({ courses, selectedCourse, setSelectedCourse, isLoading }: CourseSelectProps) {
