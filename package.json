@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "cross-env NEXT_PUBLIC_BASE_URL=https://owca-exam-planner.azurewebsites.net/ next dev",
     "dev:localhost": "cross-env NEXT_PUBLIC_BASE_URL=https://localhost:7267/ next dev",
-    "dev:https": "cross-env NEXT_PUBLIC_BASE_URL=https://localhost:7267/ node server.js",
+    "local:https": "cross-env NEXT_PUBLIC_BASE_URL=https://localhost:7267/ node server.js",
+    "azure:https": "cross-env NEXT_PUBLIC_BASE_URL=https://owca-exam-planner.azurewebsites.net/ node server.js",
     "build": "cross-env NEXT_PUBLIC_BASE_URL=https://owca-exam-planner.azurewebsites.net/ next build",
     "build:localhost": "cross-env NEXT_PUBLIC_BASE_URL=https://localhost:7267/ next build",
     "start": "cross-env NEXT_PUBLIC_BASE_URL=https://owca-exam-planner.azurewebsites.net/ next start",
