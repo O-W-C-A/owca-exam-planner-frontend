@@ -1,190 +1,122 @@
-'use client';
-import { useState, useEffect, useCallback } from 'react';
-import api from '@/utils/axiosInstance';
-import Cookies from 'js-cookie';
-import { Toast } from '@/app/components/Toast';
-import { ExamRequestPopup } from '@/app/components/ExamRequestPopup';
-
-type Event = {
-  id: string;
-  title: string;
-  date: string;
-  start: string | null;
-  end: string | null;
-  status: 'Pending' | 'Approved' | 'Rejected';
-  details: {
-    professor: {
-      firstName: string;
-      lastName: string;
-    };
-    assistant: {
-      firstName: string;
-      lastName: string;
-    } | null;
-    group: string;
-    type: string | null;
-    notes: string | null;
-  };
-  courseId: string;
-};
+"use client";
+import { useState, useEffect, useCallback } from "react";
+import api from "@/utils/axiosInstance";
+import Cookies from "js-cookie";
+import ToastMessage from "@/app/components/ToastMessage";
+import { ExamRequestPopup } from "@/app/components/ExamRequestPopup";
+import ExamRequestList from "@/app/components/ExamRequestList";
+import { ExamRequest, ExamRequestFormData } from "@/types/examRequest";
 
 export default function StudentLeaderInbox() {
-  const [examRequests, setExamRequests] = useState<Event[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [showUpdatePopup, setShowUpdatePopup] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState<Event | null>(null);
+  // State variables to manage exam requests, loading state, error messages, and other UI states
+  const [examRequests, setExamRequests] = useState<ExamRequest[]>([]); // Holds the list of exam requests
+  const [isLoading, setIsLoading] = useState(false); // Tracks loading state
+  const [error, setError] = useState<string | null>(null); // Tracks error message if any
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "error" | "success" | "info";
+  } | null>(null); // Holds the toast notification state
+  const [showUpdatePopup, setShowUpdatePopup] = useState(false); // Controls visibility of the update popup
+  const [selectedRequest, setSelectedRequest] = useState<ExamRequest | null>(null); // Holds the currently selected exam request for update
 
+  // Function to fetch exam requests from the API
   const fetchExamRequests = useCallback(async () => {
     try {
-      setIsLoading(true);
-      const userId = Cookies.get('userId');
-      const response = await api.get(`/events/student/${userId}`);
+      setIsLoading(true); // Set loading state to true before API request
+      const userId = Cookies.get("userId"); // Get user ID from cookies
+      const response = await api.get(`/events/student/${userId}`); // Fetch exam requests for the user
+
+      // If the request is successful, update the state with the fetched exam requests
       if (response.status === 200) {
-        setExamRequests(response.data);
+        setExamRequests(response.data); // Set the exam request data to the state
       }
     } catch (error: unknown) {
-      console.log('Failed to load exam requests', error);
-      setError(error instanceof Error ? error.message : 'Failed to load exam requests');
+      // Handle errors if the request fails
+      setError(
+        error instanceof Error ? error.message : "Failed to load exam requests"
+      ); // Set a meaningful error message
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Set loading state to false after request completion
     }
   }, []);
 
+  // Fetch exam requests on initial component mount
   useEffect(() => {
     fetchExamRequests();
   }, [fetchExamRequests]);
 
-  const handleUpdate = async (data: {
-    date: Date;
-    notes: string;
-  }) => {
+  // Function to handle the update of an exam request
+  const handleUpdate = async (data: ExamRequestFormData) => {
     try {
-      if (!selectedRequest) return;
-      
-      const formattedDate = data.date.toLocaleDateString('en-CA');
+      if (!selectedRequest) return; // Ensure a request is selected before updating
+
+      const formattedDate = data.date.toLocaleDateString("en-CA"); // Format the date as YYYY-MM-DD
       const updateData = {
         examDate: formattedDate,
         details: data.notes,
-        status: 'Pending'
+        status: "Pending", // Set status as Pending during update
       };
 
-      const response = await api.put(`/event/exam-request/${selectedRequest.id}`, updateData);
+      const response = await api.put(
+        `/event/exam-request/${selectedRequest.id}`,
+        updateData
+      );
+
+      // If update is successful, display success message and refresh the list of requests
       if (response.status === 200) {
-        setToastMessage('Exam request updated and resubmitted');
-        setShowUpdatePopup(false);
-        fetchExamRequests();
+        setToast({
+          message: "Exam request updated and resubmitted", // Success message
+          type: "success", // Toast type set to success
+        });
+        setShowUpdatePopup(false); // Close the update popup
+        fetchExamRequests(); // Refresh the list of exam requests
       }
     } catch (error: unknown) {
-      console.log('Failed to update exam request', error);
-      setToastMessage(error instanceof Error ? error.message : 'Failed to update exam request');
+      // Handle errors if the update request fails
+      setToast({
+        message: error instanceof Error ? error.message : "Failed to update exam request",
+        type: "error", // Toast type set to error
+      });
     }
   };
 
-  const formatDateTime = (date: string, start: string | null, end: string | null) => {
-    const eventDate = new Date(date);
-    const dateStr = eventDate.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-
-    if (start && end) {
-      return `${dateStr} (${start} - ${end})`;
-    }
-    return dateStr;
-  };
-
-  const getStatusStyles = (status: string) => {
-    switch (status) {
-      case 'Pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'Approved':
-        return 'bg-green-100 text-green-800';
-      default:
-        return 'bg-red-100 text-red-800';
-    }
-  };
+  // Clear toast message when closed
+  const clearToast = () => setToast(null);
 
   return (
     <div className="h-full flex flex-col p-6">
-      {toastMessage && (
-        <Toast 
-          message={toastMessage} 
-          onClose={() => setToastMessage(null)} 
+      {/* ToastMessage notification */}
+      {toast && (
+        <ToastMessage
+          message={toast.message} // Display the toast message
+          type={toast.type} // Set the toast type (success, error, or info)
+          onClose={clearToast} // Clear the toast on close
         />
       )}
-      
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
 
+      {/* List of exam requests */}
       <div className="flex-1 overflow-auto">
-        {isLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {examRequests.map((request) => (
-              <div
-                key={request.id}
-                className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="font-medium text-lg">{request.title}</h3>
-                    <p className="text-gray-600">
-                      Professor: {request.details.professor.firstName} {request.details.professor.lastName}
-                    </p>
-                  </div>
-                  <span className={`px-2 py-1 rounded text-sm ${getStatusStyles(request.status)}`}>
-                    {request.status}
-                  </span>
-                </div>
-                <div className="text-sm text-gray-600">
-                  <p className="mb-1">
-                    Date: {formatDateTime(request.date, request.start, request.end)}
-                  </p>
-                  {request.details.type && (
-                    <p className="mb-1">Type: {request.details.type}</p>
-                  )}
-                  {request.details.notes && (
-                    <p className="mb-1">Details: {request.details.notes}</p>
-                  )}
-                </div>
-                <div className="flex justify-end mt-4 space-x-2">
-                  {request.status === 'Rejected' && (
-                    <button
-                      onClick={() => {
-                        setSelectedRequest(request);
-                        setShowUpdatePopup(true);
-                      }}
-                      className="bg-blue-500 text-white px-3 py-1.5 rounded hover:bg-blue-600 transition text-sm"
-                    >
-                      Update Request
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <ExamRequestList
+          examRequests={examRequests} // Pass the list of exam requests to the component
+          isLoading={isLoading} // Pass loading state to show loading indicator
+          error={error} // Pass any error message to display an error
+          onUpdateClick={(request) => {
+            setSelectedRequest(request); // Set the selected request for updating
+            setShowUpdatePopup(true); // Show update popup
+          }}
+        />
       </div>
 
+      {/* Exam request update popup */}
       {showUpdatePopup && selectedRequest && (
         <ExamRequestPopup
-          isOpen={showUpdatePopup}
-          onClose={() => setShowUpdatePopup(false)}
-          selectedDate={new Date(selectedRequest.date)}
-          onSubmit={handleUpdate}
-          initialNotes={selectedRequest.details.notes || ''}
-          isUpdate={true}
-          courseName={selectedRequest.title}
-          examId={selectedRequest.id}
+          isOpen={showUpdatePopup} // Show the update popup
+          onClose={() => setShowUpdatePopup(false)} // Close the update popup when clicked
+          selectedDate={new Date(selectedRequest.date)} // Set the initial date from the selected request
+          onSubmit={handleUpdate} // Submit the update when the form is submitted
+          initialNotes={selectedRequest.details.notes || ""} // Initial notes for the request
+          courseName={selectedRequest.title} // Set the course name in the popup
+          examId={selectedRequest.id} // Set the exam ID for the request
         />
       )}
     </div>

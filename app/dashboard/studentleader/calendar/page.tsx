@@ -1,271 +1,106 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import { Calendar, Views, DateLocalizer } from 'react-big-calendar';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
-import localizer from '@/app/helpers/localizer';
-import Cookies from 'js-cookie';
-import api from '@/utils/axiosInstance';
-import { ExamRequestPopup } from '@/app/components/ExamRequestPopup';
-import { ExamRequest, ExamRequestFormData,Room } from '@/types/examRequest';
+"use client";
+import React, { useState } from "react";
+import { useExamRequests } from "@/app/hooks/useExamRequests";
+import { ExamRequest } from "@/types/examRequest";
+import { ExamRequestPopup } from "@/app/components/ExamRequestPopup";
+import ExamRequestDetailsModal from "@/app/components/ExamRequestDetailsModal";
+import CalendarView from "@/app/components/CalendarView";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import Cookies from "js-cookie";
+import { View } from "react-big-calendar";
+import { UserType } from "@/types/userType";
+import ToastMessage from "@/app/components/ToastMessage";
 
 const StudentLeaderCalendar: React.FC = () => {
-  const [isClient, setIsClient] = useState(false);
+  // State for managing toast notifications
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "error" | "success" | "info";
+  } | null>(null);
+
+  // State for managing modal visibility and selected event details
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<ExamRequest | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [events, setEvents] = useState<ExamRequest[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<typeof Views[keyof typeof Views]>(Views.MONTH);
-  const [date, setDate] = useState(new Date());
+
+  // State for managing the suggestion popup and selected date
   const [showSuggestionPopup, setShowSuggestionPopup] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  useEffect(() => {
-    setIsClient(true);
-    fetchEvents();
-  }, []);
+  // Fetch exam requests and handle errors
+  const { examRequests } = useExamRequests();
 
-  const fetchEvents = async () => {
-    try {
-      const userId = Cookies.get('userId');
-      const response = await api.get(`/events/student/${userId}`);
-      if (response.status === 200) {
-        const parsedEvents = response.data.map((event: ExamRequest) => {
-          const eventDate = new Date(event.date);
-          
-          // Create start date
-          const startDate = new Date(eventDate);
-          if (event.start) {
-            const [hours, minutes] = event.start.split(':');
-            startDate.setHours(parseInt(hours), parseInt(minutes));
-          }
+  // State for managing the calendar view and current date
+  const [view, setView] = useState<View>("month");
+  const [date, setDate] = useState<Date>(new Date());
 
-          // Create end date
-          const endDate = new Date(eventDate);
-          if (event.end) {
-            const [hours, minutes] = event.end.split(':');
-            endDate.setHours(parseInt(hours), parseInt(minutes));
-          } else {
-            // If no end time, set it to 2 hours after start
-            endDate.setHours(startDate.getHours() + 2);
-          }
+  // Retrieve the user role from cookies
+  const userRole = Cookies.get("role");
 
-          return {
-            ...event,
-            start: startDate,
-            end: endDate,
-            isConfirmed: event.status === 'Approved'
-          };
-        });
-        setEvents(parsedEvents);
-      }
-    } catch (error) {
-      console.log('Failed to load events', error);
-      setError(error instanceof Error ? error.message : 'Failed to load events');
-      setEvents([]);
-    }
-  };
-
-  const formatEventTitle = (event: ExamRequest) => {
-    return event.title; // Show only subject name in calendar
-  };
-
-  const renderEventDetails = (event: ExamRequest) => {
-    if (!event.details) {
-      return (
-        <div className="text-gray-500 italic">
-          Details will be available once the exam is confirmed
-        </div>
-      );
-    }
-
-    return (
-      <>
-        <p className="mb-2">
-          <strong className="font-semibold">Professor:</strong>{' '}
-          {`${event.details.professor.firstName} ${event.details.professor.lastName}`}
-        </p>
-        {event.details.assistant && (
-          <p className="mb-2">
-            <strong className="font-semibold">Assistant:</strong>{' '}
-            {`${event.details.assistant.firstName} ${event.details.assistant.lastName}`}
-          </p>
-        )}
-        {event.details.type && (
-          <p className="mb-2">
-            <strong className="font-semibold">Type:</strong> {event.details.type}
-          </p>
-        )}
-        <p className="mb-2">
-          <strong className="font-semibold">Date:</strong>{' '}
-          {new Date(event.date).toLocaleDateString()}
-        </p>
-        {event.start && event.end && new Date(event.start).getHours() !== 0 && new Date(event.end).getHours() !== 0 && (
-          <p className="mb-2">
-            <strong className="font-semibold">Time:</strong>{' '}
-            {`${new Date(event.start).toLocaleTimeString()} - ${new Date(event.end).toLocaleTimeString()}`}
-          </p>
-        )}
-          {event.details?.rooms && event.details?.rooms.length > 0 && (
-        <p className="mb-2">
-          <strong className="font-semibold">Sali:</strong>{' '}
-          {event.details.rooms.map((room: Room) => `${room.name} (${room.location})`).join(', ')}
-        </p>
-      )}
-        {event.details.notes && (
-          <p className="mb-2">
-            <strong className="font-semibold">Details:</strong> {event.details.notes}
-          </p>
-        )}
-      </>
-    );
-  };
-
+  // Handle slot selection (when a user clicks on an empty time slot in the calendar)
   const handleSelectSlot = (slotInfo: { start: Date; end: Date }) => {
     setSelectedDate(slotInfo.start);
     setShowSuggestionPopup(true);
   };
 
-  const handleExamRequest = async (data: ExamRequestFormData) => {
-    try {
-      if (!data.courseId) return;
-      
-      const groupId = Cookies.get('groupId');
-      const formattedDate = data.date.toLocaleDateString('en-CA');
-      
-      const examRequest = {
-        courseId: data.courseId,
-        groupId: groupId,
-        examDate: formattedDate,
-        details: data.notes
-      };
-
-      await api.post('/event/exam-request', examRequest);
-      fetchEvents();
-    } catch (error) {
-      console.error('Failed to submit exam request:', error);
-      setError('Failed to submit exam request');
-    }
+  // Handle event selection (when a user clicks on an existing event in the calendar)
+  const handleSelectEvent = (event: ExamRequest) => {
+    setSelectedEvent(event);
+    setIsModalOpen(true);
   };
 
-  const getEventBackgroundColor = (status: string) => {
-    switch (status) {
-      case 'Approved':
-        return '#22c55e';  // green-500
-      case 'Rejected':
-        return '#ef4444';  // red-500
-      default:
-        return '#f59e0b';  // amber-500 for Pending
-    }
+  // Close the details modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
   };
 
-  const getStatusStyles = (status: string) => {
-    switch (status) {
-      case 'Approved':
-        return 'bg-green-100 text-green-800';
-      case 'Rejected':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-amber-100 text-amber-800';
-    }
-  };
-
-  if (!isClient) {
-    return <div>Loading calendar...</div>;
-  }
+  // Clear toast notifications
+  const clearToast = () => setToast(null);
 
   return (
     <div className="h-full flex flex-col">
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 flex-none">
-          {error}
-        </div>
+      {/* Display toast notifications if any */}
+      {toast && (
+        <ToastMessage
+          message={toast.message}
+          type={toast.type}
+          onClose={clearToast}
+        />
       )}
+
       <div className="flex-1 min-h-0">
-        <Calendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          className="h-full"
-          defaultView={Views.MONTH}
+        {/* Render the calendar view with event and slot handlers */}
+        <CalendarView
+          events={examRequests}
           view={view}
-          onView={setView}
+          setView={setView}
           date={date}
-          onNavigate={date => setDate(date)}
-          selectable
-          culture="en-GB"
-          formats={{
-            eventTimeRangeFormat: () => '',
-            eventTimeRangeEndFormat: () => '',
-            timeGutterFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
-              localizer?.format(date, 'HH:mm', culture ?? 'en-GB') ?? '',
-            dayFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
-              localizer?.format(date, 'EEE', culture ?? 'en-GB') ?? '',
-            dateFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
-              localizer?.format(date, 'd', culture ?? 'en-GB') ?? '',
-          }}
-          titleAccessor={formatEventTitle}
-          onSelectEvent={(event) => {
-            setSelectedEvent(event);
-            setIsModalOpen(true);
-          }}
-          eventPropGetter={(event) => ({
-            style: {
-              backgroundColor: getEventBackgroundColor(event.status),
-              color: 'white',
-              borderRadius: '5px',
-              border: 'none',
-            },
-          })}
-          messages={{
-            today: 'Today',
-            previous: 'Previous',
-            next: 'Next',
-            month: 'Month',
-            week: 'Week',
-            day: 'Day',
-            agenda: 'Agenda'
-          }}
-          views={['month', 'week', 'day']}
-          toolbar={true}
-          onSelectSlot={handleSelectSlot}
+          setDate={setDate}
+          onEventSelect={handleSelectEvent}
+          onSlotSelect={handleSelectSlot}
         />
       </div>
 
+      {/* Render the details modal if an event is selected */}
       {isModalOpen && selectedEvent && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 shadow-lg max-w-md w-full relative">
-            <div className="absolute inset-0 bg-white rounded-lg" />
-            
-            <div className="relative">
-              <h2 className="text-xl font-bold mb-4">
-                {selectedEvent.title}
-                <span className={`ml-2 px-2 py-1 text-sm rounded ${getStatusStyles(selectedEvent.status)}`}>
-                  {selectedEvent.status}
-                </span>
-              </h2>
-              
-              {renderEventDetails(selectedEvent)}
-
-              <div className="flex justify-end space-x-4 mt-6">
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ExamRequestDetailsModal
+          examRequest={selectedEvent}
+          onClose={handleCloseModal}
+          onApprove={() => {
+            setToast({ message: "Approved successfully!", type: "success" });
+          }}
+          onReject={() => {
+            setToast({ message: "Rejected successfully!", type: "error" });
+          }}
+          isProfessor={userRole === UserType.Professor}
+        />
       )}
 
-      {selectedDate && (
+      {/* Render the suggestion popup if a date is selected */}
+      {showSuggestionPopup && selectedDate && (
         <ExamRequestPopup
           isOpen={showSuggestionPopup}
-          onClose={() => setShowSuggestionPopup(false)}
           selectedDate={selectedDate}
-          onSubmit={handleExamRequest}
+          onClose={() => setShowSuggestionPopup(false)}
         />
       )}
     </div>

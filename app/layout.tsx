@@ -1,18 +1,18 @@
 import { Inter, Noto_Sans } from "next/font/google";
 import "./globals.css";
-import { UserProvider } from '@/contexts/UserContext';
+import { UserProvider } from "@/contexts/UserContext";
 
 const inter = Inter({
-  subsets: ['latin'],
-  display: 'block',
+  subsets: ["latin"],
+  display: "block",
   preload: true,
-  weight: ['400', '500', '600', '700'],
+  weight: ["400", "500", "600", "700"],
 });
 
 const notoSans = Noto_Sans({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  display: 'swap',
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  display: "swap",
 });
 
 const globalMetadata = {
@@ -22,7 +22,11 @@ const globalMetadata = {
 
 export const metadata = globalMetadata;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" className={`${inter.className} ${notoSans.className}`}>
       <head>
@@ -30,9 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <title>{globalMetadata.title}</title>
       </head>
       <body className="antialiased bg-blue-50">
-        <UserProvider>
-          {children}
-        </UserProvider>
+        <UserProvider>{children}</UserProvider>
       </body>
     </html>
   );

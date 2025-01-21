@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import Select from 'react-select';
-import api from '@/utils/axiosInstance';
-import { ExamType } from '@/types/examType';
+import { useState, useEffect } from "react";
+import Select from "react-select";
+import api from "@/utils/axiosInstance";
+import { ExamType } from "@/types/examType";
 
 type Assistant = {
   id: string;
@@ -32,16 +32,26 @@ type ApprovePopupProps = Readonly<{
   }) => void;
 }>;
 
-export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePopupProps) {
-  const [timeStart, setTimeStart] = useState('');
-  const [timeEnd, setTimeEnd] = useState('');
+export function ApprovePopup({
+  isOpen,
+  onClose,
+  courseId,
+  onApprove,
+}: ApprovePopupProps) {
+  const [timeStart, setTimeStart] = useState("");
+  const [timeEnd, setTimeEnd] = useState("");
   const [assistants, setAssistants] = useState<Assistant[]>([]);
-  const [selectedAssistant, setSelectedAssistant] = useState<{ value: string; label: string } | null>(null);
+  const [selectedAssistant, setSelectedAssistant] = useState<{
+    value: string;
+    label: string;
+  } | null>(null);
   const [examType, setExamType] = useState<ExamType>(ExamType.Written);
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [selectedRooms, setSelectedRooms] = useState<{ value: number; label: string }[]>([]);
+  const [selectedRooms, setSelectedRooms] = useState<
+    { value: number; label: string }[]
+  >([]);
 
   useEffect(() => {
     const fetchAssistants = async () => {
@@ -52,7 +62,7 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
           setAssistants(response.data);
         }
       } catch (error) {
-        console.error('Failed to fetch assistants:', error);
+        console.error("Failed to fetch assistants:", error);
       } finally {
         setIsLoading(false);
       }
@@ -60,12 +70,12 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
 
     const fetchRooms = async () => {
       try {
-        const response = await api.get('/GetAllRooms');
+        const response = await api.get("/GetAllRooms");
         if (response.status === 200) {
           setRooms(response.data);
         }
       } catch (error) {
-        console.error('Failed to fetch rooms:', error);
+        console.error("Failed to fetch rooms:", error);
       }
     };
 
@@ -75,27 +85,28 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
     }
   }, [isOpen, courseId]);
 
-  const assistantOptions = assistants.map(assistant => ({
+  const assistantOptions = assistants.map((assistant) => ({
     value: assistant.id,
-    label: `${assistant.firstName} ${assistant.lastName}`
+    label: `${assistant.firstName} ${assistant.lastName}`,
   }));
 
-  const roomOptions = rooms.map(room => ({
+  const roomOptions = rooms.map((room) => ({
     value: room.roomID,
-    label: `${room.name} (${room.location})`
+    label: `${room.name} (${room.location})`,
   }));
 
   // Create the options for the select dropdown based on the ExamType enum
-  const examTypes = Object.values(ExamType).map(value => ({
+  const examTypes = Object.values(ExamType).map((value) => ({
     value,
     label: value,
   }));
 
-  const isFormValid = timeStart && 
-                     timeEnd && 
-                     selectedAssistant && 
-                     examType && 
-                     selectedRooms.length > 0;
+  const isFormValid =
+    timeStart &&
+    timeEnd &&
+    selectedAssistant &&
+    examType &&
+    selectedRooms.length > 0;
 
   if (!isOpen) return null;
 
@@ -103,11 +114,14 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
         <h3 className="text-lg font-semibold mb-4">Approve Exam Request</h3>
-        
+
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="timeStart" className="block text-sm font-medium mb-1">
+              <label
+                htmlFor="timeStart"
+                className="block text-sm font-medium mb-1"
+              >
                 Start Time <span className="text-red-500">*</span>
               </label>
               <input
@@ -121,7 +135,10 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
               />
             </div>
             <div>
-              <label htmlFor="timeEnd" className="block text-sm font-medium mb-1">
+              <label
+                htmlFor="timeEnd"
+                className="block text-sm font-medium mb-1"
+              >
                 End Time <span className="text-red-500">*</span>
               </label>
               <input
@@ -137,7 +154,10 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
           </div>
 
           <div>
-            <label htmlFor="assistant" className="block text-sm font-medium mb-1">
+            <label
+              htmlFor="assistant"
+              className="block text-sm font-medium mb-1"
+            >
               Assistant <span className="text-red-500">*</span>
             </label>
             <Select
@@ -154,12 +174,15 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
           </div>
 
           <div>
-            <label htmlFor="examType" className="block text-sm font-medium mb-1">
+            <label
+              htmlFor="examType"
+              className="block text-sm font-medium mb-1"
+            >
               Exam Type <span className="text-red-500">*</span>
             </label>
             <Select
               id="examType"
-              value={examTypes.find(type => type.value === examType)}
+              value={examTypes.find((type) => type.value === examType)}
               onChange={(option) => setExamType(option?.value as ExamType)}
               options={examTypes}
               className="w-full"
@@ -175,7 +198,9 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
               id="rooms"
               isMulti
               value={selectedRooms}
-              onChange={(newValue) => setSelectedRooms(newValue as { value: number; label: string }[])}
+              onChange={(newValue) =>
+                setSelectedRooms(newValue as { value: number; label: string }[])
+              }
               options={roomOptions}
               placeholder="Select rooms..."
               className="w-full"
@@ -184,17 +209,23 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
           </div>
 
           <div>
-            <label htmlFor="notes" className="block text-sm font-medium mb-1">Additional Notes</label>
+            <label htmlFor="notes" className="block text-sm font-medium mb-1">
+              Additional Notes
+            </label>
             <textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Enter additional details..."
-              className="w-full p-3 border rounded-md h-24"
+              className="w-full p-3 border rounded-md h-24 min-h-[100px] max-h-[150px]"
+              maxLength={120} // Limit to 120 characters
             />
+            <p className="text-sm text-gray-500 mt-1">
+              {notes.length} / 120 characters
+            </p>
           </div>
         </div>
-        
+
         <div className="flex justify-end space-x-3 mt-6">
           <button
             onClick={onClose}
@@ -210,7 +241,7 @@ export function ApprovePopup({ isOpen, onClose, courseId, onApprove }: ApprovePo
                 assistantId: selectedAssistant?.value,
                 type: examType,
                 notes: notes.trim() || undefined,
-                roomsId: selectedRooms.map(room => room.value),
+                roomsId: selectedRooms.map((room) => room.value),
               });
               onClose();
             }}

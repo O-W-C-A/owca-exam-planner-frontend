@@ -1,248 +1,110 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import { Calendar, Views, DateLocalizer } from 'react-big-calendar';
-import localizer from '@/app/helpers/localizer';
-import Cookies from 'js-cookie';
-import api from '@/utils/axiosInstance';
-import { ExamType } from '@/types/examType';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
-
-type Room = {
-  name: string;
-  location: string;
-};
-
-type Event = {
-  id: string;
-  title: string;         // Subject name
-  start: Date;           // Exam date and time
-  end: Date;             // Exam end time
-  isConfirmed: boolean;
-  details?: {            // Optional details (might be empty for unconfirmed exams)
-    professor: {
-      firstName: string;
-      lastName: string;
-    };
-    assistant?: {        // Optional assistant
-      firstName: string;
-      lastName: string;
-    };
-    room?: string;       // Optional room
-    type?: ExamType;     // Optional exam type from the enum
-    notes?: string;      // Optional notes
-    rooms : Room[];
-  };
-};
-type ApiEvent = {
-  id: string;
-  title: string;
-  date: string;
-  start: string;
-  end: string;
-  status: string;
-  details: {
-    professor: {
-      firstName: string;
-      lastName: string;
-    };
-    assistant?: {
-      firstName: string;
-      lastName: string;
-    };
-    rooms: Room[];
-    group: string;
-    notes?: string;
-    type?: ExamType; // Use the ExamType enum here as well
-  };
-};
+"use client";
+import React, { useState } from "react";
+import { useExamRequests } from "@/app/hooks/useExamRequests"; // Custom hook to fetch exam requests
+import { ExamRequest } from "@/types/examRequest"; // Exam request type definition
+import ExamRequestDetailsModal from "@/app/components/ExamRequestDetailsModal"; // Modal for exam request details
+import CalendarView from "@/app/components/CalendarView"; // Calendar component
+import "react-big-calendar/lib/css/react-big-calendar.css"; // Calendar styles
+import Cookies from "js-cookie"; // For retrieving user role
+import { View } from "react-big-calendar"; // Calendar view type
+import { UserType } from "@/types/userType"; // User type enum
+import ToastMessage from "@/app/components/ToastMessage"; // Component for displaying toast notifications
 
 const StudentCalendar: React.FC = () => {
-  const [isClient, setIsClient] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [events, setEvents] = useState<Event[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<typeof Views[keyof typeof Views]>(Views.MONTH);
-  const [date, setDate] = useState(new Date());
+  // State to manage toast notifications
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "error" | "success" | "info";
+  } | null>(null);
 
-  useEffect(() => {
-    setIsClient(true);
-    fetchEvents();
-  }, []);
+  // State to control modal visibility
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const fetchEvents = async (): Promise<void> => {
-    try {
-      const userId = Cookies.get('userId');
-      const response = await api.get(`/events/student/${userId}`);
-  
-      if (response.status === 200) {
-        const parsedEvents: Event[] = response.data.map((event: ApiEvent) => ({
-          ...event,
-          start: event.start ? new Date(`${event.date}T${event.start}`) : null,
-          end: event.end ? new Date(`${event.date}T${event.end}`) : null,
-          isConfirmed: event.status === 'Approved', // Setăm isConfirmed pe baza statusului
-        })).filter((event: Event) => event.start && event.end); // Filtrăm evenimentele fără date valide
-      
-        setEvents(parsedEvents);
-      }
-    } catch (error: unknown) {
-      console.log('Failed to load events', error);
-      setError(error instanceof Error ? error.message : 'Failed to load events');
-      setEvents([]);
-    }
-  };
-  
+  // State to store the currently selected event for the modal
+  const [selectedEvent, setSelectedEvent] = useState<ExamRequest | null>(null);
 
-  const formatEventTitle = (event: Event) => {
-    return event.title; // Show only subject name in calendar
+  // Fetch exam requests and any associated errors using the custom hook
+  const { examRequests, error } = useExamRequests();
+
+  // State to manage the current view of the calendar (month, week, day)
+  const [view, setView] = useState<View>("month");
+
+  // State to manage the current date displayed on the calendar
+  const [date, setDate] = useState<Date>(new Date());
+
+  // Retrieve the user's role from cookies
+  const userRole = Cookies.get("role");
+
+  /**
+   * Handles the selection of an event in the calendar.
+   * Opens the modal to display the details of the selected event.
+   *
+   * @param event - The selected exam request event
+   */
+  const handleSelectEvent = (event: ExamRequest) => {
+    setSelectedEvent(event);
+    setIsModalOpen(true);
   };
 
-  const renderEventDetails = (event: Event) => {
-    if (!event.details) {
-      return (
-        <div className="text-gray-500 italic">
-          Details will be available once the exam is confirmed
-        </div>
-      );
-    }
-
-    return (
-      <>
-        <p className="mb-2">
-          <strong className="font-semibold">Professor:</strong>{' '}
-          {`${event.details.professor.firstName} ${event.details.professor.lastName}`}
-        </p>
-        {event.details.assistant && (
-          <p className="mb-2">
-            <strong className="font-semibold">Assistant:</strong>{' '}
-            {`${event.details.assistant.firstName} ${event.details.assistant.lastName}`}
-          </p>
-        )}
-        {event.details.room && (
-          <p className="mb-2">
-            <strong className="font-semibold">Room:</strong> {event.details.room}
-          </p>
-        )}
-        {event.details?.rooms && event.details?.rooms.length > 0 && (
-        <p className="mb-2">
-          <strong className="font-semibold">Sali:</strong>{' '}
-          {event.details.rooms.map((room: Room) => `${room.name} (${room.location})`).join(', ')}
-        </p>
-      )}
-        {event.details.type && (
-          <p className="mb-2">
-            <strong className="font-semibold">Type:</strong> {event.details.type}
-          </p>
-        )}
-        <p className="mb-2">
-          <strong className="font-semibold">Date:</strong>{' '}
-          {event.start.toLocaleDateString()}
-        </p>
-        <p className="mb-2">
-          <strong className="font-semibold">Time:</strong>{' '}
-          {`${event.start.toLocaleTimeString()} - ${event.end.toLocaleTimeString()}`}
-        </p>
-        {event.details.notes && (
-          <p className="mb-2">
-            <strong className="font-semibold">Notes:</strong> {event.details.notes}
-          </p>
-        )}
-      </>
-    );
+  /**
+   * Closes the modal displaying exam request details.
+   */
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
   };
 
-  if (!isClient) {
-    return <div>Loading calendar...</div>;
+  /**
+   * Placeholder function to disable slot selection for students.
+   */
+  const noop = () => {};
+
+  /**
+   * Clears the current toast notification.
+   */
+  const clearToast = () => setToast(null);
+
+  // Display a toast message if there is an error fetching exam requests
+  if (error) {
+    setToast({ message: "Failed to load exam requests. Please try again.", type: "error" });
   }
 
   return (
     <div className="h-full flex flex-col">
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 flex-none">
-          {error}
-        </div>
+      {/* Display toast notification if present */}
+      {toast && (
+        <ToastMessage
+          message={toast.message}
+          type={toast.type}
+          onClose={clearToast}
+        />
       )}
+
       <div className="flex-1 min-h-0">
-        <Calendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          className="h-full"
-          defaultView={Views.MONTH}
-          view={view}
-          onView={setView}
-          date={date}
-          onNavigate={date => setDate(date)}
-          selectable
-          culture="en-GB"
-          formats={{
-            eventTimeRangeFormat: () => '',
-            eventTimeRangeEndFormat: () => '',
-            timeGutterFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
-              localizer?.format(date, 'HH:mm', culture ?? 'en-GB') ?? '',
-            dayFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
-              localizer?.format(date, 'EEE', culture ?? 'en-GB') ?? '',
-            dateFormat: (date: Date, culture?: string, localizer?: DateLocalizer) =>
-              localizer?.format(date, 'd', culture ?? 'en-GB') ?? '',
-          }}
-          titleAccessor={formatEventTitle}
-          onSelectEvent={(event: Event) => {
-            setSelectedEvent(event);
-            setIsModalOpen(true);
-          }}
-          eventPropGetter={(event: Event) => ({
-            style: {
-              backgroundColor: event.isConfirmed ? 'green' : 'red',
-              color: 'white',
-              borderRadius: '5px',
-              border: 'none',
-            },
-          })}
-          messages={{
-            today: 'Today',
-            previous: 'Previous',
-            next: 'Next',
-            month: 'Month',
-            week: 'Week',
-            day: 'Day',
-            agenda: 'Agenda'
-          }}
-          views={['month', 'week', 'day']}
-          toolbar={true}
+        {/* Render the calendar view */}
+        <CalendarView
+          events={examRequests} // Pass fetched events
+          view={view} // Current calendar view
+          setView={setView} // Function to update view
+          date={date} // Current calendar date
+          setDate={setDate} // Function to update date
+          onEventSelect={handleSelectEvent} // Handle event selection
+          onSlotSelect={noop} // Disable slot selection for students
         />
       </div>
 
+      {/* Render the modal for exam request details if open */}
       {isModalOpen && selectedEvent && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 shadow-lg max-w-md w-full relative">
-            <div className="absolute inset-0 bg-white rounded-lg" />
-            
-            <div className="relative">
-              <h2 className="text-xl font-bold mb-4">
-                {selectedEvent.title}
-                <span className={`ml-2 px-2 py-1 text-sm rounded ${
-                  selectedEvent.isConfirmed 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {selectedEvent.isConfirmed ? 'Confirmed' : 'Unconfirmed'}
-                </span>
-              </h2>
-              
-              {renderEventDetails(selectedEvent)}
-
-              <div className="flex justify-end space-x-4 mt-6">
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ExamRequestDetailsModal
+          examRequest={selectedEvent} // Pass selected event
+          onClose={handleCloseModal} // Function to close the modal
+          onApprove={() => {
+            setToast({ message: "Exam request approved.", type: "success" });
+          }} // Display success toast on approval
+          onReject={() => {
+            setToast({ message: "Exam request rejected.", type: "error" });
+          }} // Display error toast on rejection
+          isProfessor={userRole === UserType.Professor} // Enable professor-specific actions
+        />
       )}
     </div>
   );

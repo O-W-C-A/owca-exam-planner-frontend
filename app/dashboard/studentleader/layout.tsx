@@ -1,6 +1,6 @@
-'use client';
-import React, { useEffect, useState } from 'react';
-import { StudentLeaderSidebar } from '@/app/components/StudentLeaderSidebar';
+"use client";
+import React, { useEffect, useState } from "react";
+import { StudentLeaderSidebar } from "@/app/components/StudentLeaderSidebar";
 
 export default function StudentLeaderLayout({
   children,
@@ -20,9 +20,7 @@ export default function StudentLeaderLayout({
   return (
     <>
       <StudentLeaderSidebar />
-      <main className="flex-1 p-6 flex flex-col min-h-0">
-        {children}
-      </main>
+      <main className="flex-1 p-6 flex flex-col min-h-0">{children}</main>
     </>
   );
-} 
+}

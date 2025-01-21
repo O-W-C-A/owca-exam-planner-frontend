@@ -46,7 +46,7 @@ export const hasAccess = (role: string, path: string): boolean => {
   if (normalizedRole === 'student') {
     // Ensure `studentleader` is excluded
     const hasAccess = normalizedPath.startsWith('/dashboard/student') &&
-                      !normalizedPath.startsWith('/dashboard/studentleader');
+      !normalizedPath.startsWith('/dashboard/studentleader');
     console.log(`Role "student": ${hasAccess ? 'Access granted' : 'Access denied'} to path "${normalizedPath}".`);
     return hasAccess;
   }
