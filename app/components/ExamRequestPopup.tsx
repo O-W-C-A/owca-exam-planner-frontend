@@ -39,7 +39,7 @@ export function ExamRequestPopup({
       prenumeProfesor: string;
     }[]
   >([]);
-  const [selectedCourseId, setSelectedCourseId] = useState<string>(examId || "");
+  const [selectedCourseId, setSelectedCourseId] = useState<string>(examId ?? "");
 
   // Update date when selectedDate prop changes
   useEffect(() => {
