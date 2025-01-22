@@ -1,4 +1,13 @@
 import { useEffect, useState } from "react";
+
+interface ExamRequestProps {
+  isOpen: boolean;
+  onClose: () => void;
+  selectedDate: string;
+  initialNotes?: string;
+  courseName: string;
+  examId?: string;
+}
 import { Card, CardContent, CardHeader, CardTitle } from "./card";
 import api from "@/utils/axiosInstance";
 import Cookies from "js-cookie";
