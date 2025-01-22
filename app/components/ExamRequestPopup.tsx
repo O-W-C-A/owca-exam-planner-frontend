@@ -45,7 +45,7 @@ export function ExamRequestPopup({
   useEffect(() => {
     if (selectedDate) {
       const localDate = new Date(selectedDate);
-      localDate.setHours(0, 0, 0, 0); // Set time to midnight for consistency
+      // localDate.setHours(0, 0, 0, 0); // Set time to midnight for consistency
       setDate(localDate);
     }
   }, [selectedDate]);
