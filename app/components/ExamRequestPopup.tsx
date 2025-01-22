@@ -4,16 +4,19 @@ import api from "@/utils/axiosInstance";
 import Cookies from "js-cookie";
 import ToastMessage from "@/app/components/ToastMessage";
 
-// Define props for the ExamRequestPopup component
-type ExamRequestProps = Readonly<{
-  isOpen: boolean;
-  onClose: () => void;
-  selectedDate: Date | null;
-  onSubmit?: (data: { date: Date; notes: string; courseId: string }) => void;
-  initialNotes?: string;
-  examId?: string; // Removed isUpdate flag
-  courseName?: string;
-}>;
+// Helper function to format dates in UTC
+const formatDateToUTC = (date: Date) => {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+// Helper function to parse date from input and ensure UTC
+const parseDateFromInput = (input: string) => {
+  const date = new Date(input);
+  return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+};
 
 export function ExamRequestPopup({
   isOpen,
@@ -24,7 +27,7 @@ export function ExamRequestPopup({
   examId,
 }: ExamRequestProps) {
   const [date, setDate] = useState<Date>(() =>
-    selectedDate ? new Date(selectedDate) : new Date()
+    selectedDate ? parseDateFromInput(selectedDate) : new Date()
   );
   const [notes, setNotes] = useState(initialNotes);
   const [toast, setToast] = useState<{
@@ -44,9 +47,8 @@ export function ExamRequestPopup({
   // Update date when selectedDate prop changes
   useEffect(() => {
     if (selectedDate) {
-      const localDate = new Date(selectedDate);
-      localDate.setHours(0, 0, 0, 0); // Set time to midnight for consistency
-      setDate(localDate);
+      const utcDate = parseDateFromInput(selectedDate);
+      setDate(utcDate);
     }
   }, [selectedDate]);
 
@@ -57,7 +59,6 @@ export function ExamRequestPopup({
         try {
           const userIdCookie = Cookies.get("userId");
 
-          // Ensure userId is available in cookies
           if (!userIdCookie) {
             setToast({
               message: "User ID not found in cookies.",
@@ -72,7 +73,7 @@ export function ExamRequestPopup({
 
           setCourses(response.data);
         } catch (fetchError) {
-          console.log(fetchError);
+          console.error(fetchError);
           setToast({
             message: "Failed to fetch courses. Please try again.",
             type: "error",
@@ -111,7 +112,7 @@ export function ExamRequestPopup({
       onClose(); // Close the modal
       window.location.reload(); // Refresh the page to reflect changes
     } catch (submitError) {
-      console.log(submitError);
+      console.error(submitError);
       setToast({
         message: "Failed to submit exam request. Please try again.",
         type: "error",
@@ -149,7 +150,7 @@ export function ExamRequestPopup({
       onClose(); // Close the modal
       window.location.reload(); // Refresh the page to reflect changes
     } catch (submitError) {
-      console.log(submitError);
+      console.error(submitError);
       setToast({
         message: "Failed to update exam request. Please try again.",
         type: "error",
@@ -243,20 +244,12 @@ export function ExamRequestPopup({
                   <input
                     id="date"
                     type="date"
-                    value={date.toLocaleDateString("en-CA")}
-                    onChange={(e) =>
-                      setDate(
-                        new Date(
-                          new Date(e.target.value).setDate(
-                            new Date(e.target.value).getDate()
-                          )
-                        )
-                      )
-                    }
+                    value={formatDateToUTC(date)}
+                    onChange={(e) => setDate(parseDateFromInput(e.target.value))}
                     className="w-full px-3 py-2 border rounded-md"
-                    min={new Date(
-                      new Date().setDate(new Date().getDate() + 1)
-                    ).toLocaleDateString("en-CA")}
+                    min={formatDateToUTC(
+                      new Date(new Date().setDate(new Date().getDate() + 1))
+                    )}
                   />
                 </div>
 
