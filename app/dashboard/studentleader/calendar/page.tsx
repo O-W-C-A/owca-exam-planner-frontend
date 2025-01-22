@@ -99,8 +99,9 @@ const StudentLeaderCalendar: React.FC = () => {
       {showSuggestionPopup && selectedDate && (
         <ExamRequestPopup
           isOpen={showSuggestionPopup}
-          selectedDate={selectedDate}
+          selectedDate={selectedDate.toISOString()}
           onClose={() => setShowSuggestionPopup(false)}
+          courseName=''
         />
       )}
     </div>
